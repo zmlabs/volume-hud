@@ -2,6 +2,8 @@
 
 Bring back the classic volume feedback overlay to the center of your screen on macOS.
 
+https://apps.apple.com/us/app/volume-hud/id6752903119
+
 ## Why This App Exists
 
 After updating to macOS 26, the system volume feedback moved to the upper-right corner of the menu bar. This is completely unintuitive! When I'm working, my eyes are focused on the center of the screen, not looking up at the top-right corner. 
