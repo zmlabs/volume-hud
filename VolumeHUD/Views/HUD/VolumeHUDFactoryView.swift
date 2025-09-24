@@ -21,7 +21,7 @@ struct VolumeHUDFactoryView: View {
     }
 
     var body: some View {
-        Group {
+        HStack {
             switch hudStyle {
             case .classic:
                 ClassicVolumeHUDView(volumeState: volumeState)
@@ -29,6 +29,7 @@ struct VolumeHUDFactoryView: View {
                 ModernVolumeHUDView(volumeState: volumeState)
             }
         }
+        .frame(width: 280, height: 200)
         .onAppear {
             cancellabel = VolumeMonitor.shared.volumeChangePublisher
                 .receive(on: RunLoop.main)
