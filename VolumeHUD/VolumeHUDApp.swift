@@ -5,19 +5,14 @@
 //  Created by yu on 2025/9/23.
 //
 
-import SwiftUI
+import AppKit
 
 @main
-struct VolumeHUDApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
-    var body: some Scene {
-        MenuBarExtra("Volume HUD", image: ImageResource(name: "custom.waveform.low.square.fill", bundle: Bundle.main)) {
-            StatusBarMenuView()
-        }
-        Settings {
-            SettingsView()
-                .navigationTitle("")
-        }
+struct App {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.run()
     }
 }

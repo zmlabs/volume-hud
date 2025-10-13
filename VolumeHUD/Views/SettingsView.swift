@@ -12,6 +12,7 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin: Bool = false
+    @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
 
     @State var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
     @State var cancellabel: AnyCancellable?
@@ -47,20 +48,39 @@ struct SettingsView: View {
 
                 // General Section
                 SettingsSection(title: NSLocalizedString("General", comment: "General")) {
-                    HStack {
-                        Text("Launch at Login")
-                            .font(.body)
-                            .foregroundStyle(.primary)
+                    Group {
+                        HStack {
+                            Text("Launch at Login")
+                                .font(.body)
+                                .foregroundStyle(.primary)
 
-                        Spacer()
+                            Spacer()
 
-                        Toggle("Launch at Login", isOn: $launchAtLogin)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.small)
-                            .onChange(of: launchAtLogin) { _, newValue in
-                                setLaunchAtLogin(enabled: newValue)
-                            }
+                            Toggle("Launch at Login", isOn: $launchAtLogin)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                                .onChange(of: launchAtLogin) { _, newValue in
+                                    setLaunchAtLogin(enabled: newValue)
+                                }
+                        }
+                        HStack {
+                            Text("Show in Menu Bar")
+                                .font(.body)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Toggle("Show in Menu Bar", isOn: $showInMenuBar)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
+                                .onChange(of: showInMenuBar) { _, newValue in
+                                    if let delegate = NSApplication.shared.delegate as? AppDelegate {
+                                        delegate.updateMenuBarVisibility(visible: newValue)
+                                    }
+                                }
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
