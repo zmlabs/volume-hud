@@ -1,1 +1,5 @@
+Cette mise à jour apporte deux améliorations pour optimiser votre expérience de contrôle du volume :
 
+• Activation de l'effet verre liquide : Vous pouvez maintenant choisir d'activer ou non le magnifique effet verre liquide dans les paramètres, pour adapter l'affichage du volume à vos préférences personnelles.
+
+• Indicateur de volume plus précis : L'affichage de la barre de volume a été amélioré pour correspondre parfaitement aux niveaux de volume du système, vous donnant une vue claire de votre volume actuel en un coup d'œil.

@@ -1,1 +1,5 @@
+Esta actualización trae dos mejoras para optimizar su experiencia de control de volumen:
 
+• Activación del efecto cristal líquido: Ahora puede elegir si desea activar el hermoso efecto visual de cristal líquido en la configuración, adaptando la visualización del volumen a sus preferencias personales.
+
+• Indicador de volumen más preciso: Se ha mejorado la barra de volumen para que coincida perfectamente con los niveles de volumen del sistema, permitiéndole ver su volumen actual de un vistazo.
