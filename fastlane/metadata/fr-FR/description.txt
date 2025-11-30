@@ -1,0 +1,12 @@
+Volume-HUD est un utilitaire macOS conçu pour les utilisateurs habitués à l'indicateur de volume des anciennes versions de macOS. Il fournit un retour visuel plus intuitif et moins distrayant, vous permettant de connaître instantanément le niveau de volume actuel lorsque vous le réglez avec votre clavier, sans avoir à déplacer votre regard vers le coin de l'écran.
+
+Fonctionnalités clés :
+
+- Disposition classique restaurée : Affiche le retour de volume en bas au centre de l'écran, répliquant précisément l'expérience utilisateur classique de macOS pour rendre le réglage du volume à nouveau instinctif.
+- Léger et efficace : En tant qu'utilitaire fonctionnant en arrière-plan, il a été optimisé pour une utilisation négligeable des ressources système et n'aura aucun impact sur les performances de votre ordinateur.
+- Conçu pour le macOS moderne : Entièrement compatible avec les dernières versions de macOS pour garantir un fonctionnement stable.
+
+Si vous cherchez un moyen de remplacer l'indicateur de volume par défaut de macOS, Volume-HUD offre une solution fiable et classique.
+
+Politique de confidentialité : https://zmlabs.app/volume-hud/privacy
+Conditions d'utilisation : https://zmlabs.app/volume-hud/terms

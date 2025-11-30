@@ -1,0 +1,18 @@
+# The Deliverfile allows you to store various App Store Connect metadata
+# For more information, check out the docs
+# https://docs.fastlane.tools/actions/deliver/
+
+app_identifier "dev.zhangyu.volume-hud"
+
+api_key_path "./api_key.json"
+
+platform "osx"
+app_version "1.0.4"
+
+force true
+
+skip_screenshots true
+skip_binary_upload true
+submit_for_review false
+automatic_release false
+run_precheck_before_submit false
