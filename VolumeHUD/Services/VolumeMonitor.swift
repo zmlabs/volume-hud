@@ -270,7 +270,8 @@ class VolumeMonitor {
         } else if newState.isMuted {
             print("🔇 Muted")
         } else {
-            print("🔊 \(newState.volume * 100)%")
+            // Print exact float value for debugging
+            print("🔊 Volume: \(newState.volume) (raw float)")
         }
     }
 }
