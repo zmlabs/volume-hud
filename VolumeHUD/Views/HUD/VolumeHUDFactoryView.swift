@@ -21,7 +21,7 @@ struct VolumeHUDFactoryView: View {
     }
 
     var body: some View {
-        HStack {
+        ZStack {
             switch hudStyle {
             case .classic:
                 ClassicVolumeHUDView(volumeState: volumeState)

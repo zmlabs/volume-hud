@@ -10,13 +10,15 @@ import SwiftUI
 struct ModernVolumeHUDView: View {
     let volumeState: VolumeState
 
+    @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
+
     var body: some View {
-        HStack(spacing: 16) {
+        let content = HStack(spacing: 16) {
             // Volume icon
             Image(systemName: volumeIconName)
                 .font(.system(size: 24, weight: .medium))
                 .frame(width: 28)
-                .foregroundStyle(.gray)
+                .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                 .contentTransition(.symbolEffect(.replace))
 
             // Progress bar with ticks
@@ -35,7 +37,15 @@ struct ModernVolumeHUDView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .frame(width: 280, height: 64)
-        .glassEffect(in: .capsule)
+
+        if liquidGlassEnable {
+            content
+                .glassEffect(.regular, in: .capsule)
+        } else {
+            content
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+        }
     }
 
     private var volumeIconName: String {

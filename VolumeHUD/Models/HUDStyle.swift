@@ -29,4 +29,5 @@ enum AppStorageKeys {
     static let hudStyle = "hudStyle"
     static let launchAtLogin = "launchAtLogin"
     static let showInMenuBar = "showInMenuBar"
+    static let liquidGlassEnable = "liquidGlassEnable"
 }

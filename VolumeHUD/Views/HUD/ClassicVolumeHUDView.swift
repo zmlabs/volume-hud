@@ -10,13 +10,15 @@ import SwiftUI
 struct ClassicVolumeHUDView: View {
     let volumeState: VolumeState
 
+    @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
+
     var body: some View {
-        VStack(spacing: 0) {
+        let content = VStack(spacing: 0) {
             // Upper section: Volume icon
             VStack {
                 Image(systemName: volumeIconName)
                     .font(.system(size: 72, weight: .regular))
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                     .contentTransition(
                         .symbolEffect(.replace)
                     )
@@ -30,7 +32,15 @@ struct ClassicVolumeHUDView: View {
             .padding(.bottom, 16)
         }
         .frame(width: 200, height: 200)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
+
+        if liquidGlassEnable {
+            content
+                .glassEffect(.regular, in: .rect(cornerRadius: 16.0))
+        } else {
+            content
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
     }
 
     private var volumeIconName: String {

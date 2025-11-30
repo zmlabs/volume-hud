@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin: Bool = false
     @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
+    @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
 
     @State var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
     @State var cancellabel: AnyCancellable?
@@ -42,6 +43,7 @@ struct SettingsView: View {
                                 }
                             }
                         }
+                        .frame(height: 200)
                         .padding(8)
                     }
                 }
@@ -80,6 +82,18 @@ struct SettingsView: View {
                                         delegate.updateMenuBarVisibility(visible: newValue)
                                     }
                                 }
+                        }
+                        HStack {
+                            Text("Liquid Glass Enable")
+                                .font(.body)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Toggle("Liquid Glass Enable", isOn: $liquidGlassEnable)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .controlSize(.small)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -129,7 +143,7 @@ struct SettingsView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 16)
         }
-        .frame(width: 580, height: 520)
+        .frame(width: 580)
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
 
@@ -214,13 +228,14 @@ struct HUDStyleCard<PreviewContent: View>: View {
         VStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 8)
                 .fill(.background)
+                .padding()
                 .overlay {
                     preview
                         .scaleEffect(0.7)
                 }
                 .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(
                             isSelected ? Color.accentColor : Color.clear,
                             lineWidth: 2
                         )
