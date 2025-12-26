@@ -1,5 +1,7 @@
-This update brings two improvements to enhance your volume control experience:
+What's new in this version:
 
-• Liquid Glass Effect Toggle: You can now choose whether to enable the beautiful liquid glass visual effect in settings, making the volume display match your personal preference.
+• Customizable Position: Adjust the vertical position of the volume display to perfectly fit your screen setup.
 
-• More Accurate Volume Indicator: Improved the volume bar display to perfectly match system volume levels, giving you a clearer view of your current volume at a glance.
+• Improved Accuracy: Better volume display alignment for a more precise visual representation.
+
+Thank you for using VolumeHUD!

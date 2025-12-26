@@ -1,1 +1,1 @@
-New visual effects and more accurate volume display
+Beautiful volume overlay with style preview and customizable position.

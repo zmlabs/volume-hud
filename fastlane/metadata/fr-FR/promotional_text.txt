@@ -1,1 +1,1 @@
-Nouveaux effets visuels et affichage du volume plus précis
+Belle superposition de volume avec aperçu de style et position personnalisable.

@@ -4,10 +4,10 @@
 
 app_identifier "dev.zhangyu.volume-hud"
 
-api_key_path "./api_key.json"
+api_key_path ENV["APP_STORE_CONNECT_API_KEY_JSON_PATH"]
 
 platform "osx"
-app_version "1.0.4"
+app_version "1.0.5"
 
 force true
 

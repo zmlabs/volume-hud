@@ -1,1 +1,1 @@
-Neue visuelle Effekte und genauere Lautstärkeanzeige
+Schöne Lautstärkanzeige mit Stilvorschau und anpassbarer Position.

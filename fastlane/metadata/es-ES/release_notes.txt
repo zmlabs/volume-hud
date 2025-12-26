@@ -1,5 +1,7 @@
-Esta actualización trae dos mejoras para optimizar su experiencia de control de volumen:
+Novedades de esta versión:
 
-• Activación del efecto cristal líquido: Ahora puede elegir si desea activar el hermoso efecto visual de cristal líquido en la configuración, adaptando la visualización del volumen a sus preferencias personales.
+• Posición personalizable: Ajuste la posición vertical de la visualización del volumen para que se adapte perfectamente a su configuración de pantalla.
 
-• Indicador de volumen más preciso: Se ha mejorado la barra de volumen para que coincida perfectamente con los niveles de volumen del sistema, permitiéndole ver su volumen actual de un vistazo.
+• Precisión mejorada: Mejor alineación de la visualización del volumen para una representación más precisa.
+
+¡Gracias por usar VolumeHUD!

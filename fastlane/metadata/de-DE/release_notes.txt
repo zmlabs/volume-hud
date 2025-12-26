@@ -1,5 +1,7 @@
-Dieses Update bringt zwei Verbesserungen, um Ihre Lautstärkeregelung zu optimieren:
+Was gibt es Neues:
 
-• Flüssigglas-Effekt umschaltbar: Sie können jetzt in den Einstellungen wählen, ob Sie den schönen Flüssigglas-Effekt aktivieren möchten, um die Lautstärkeanzeige Ihren persönlichen Vorlieben anzupassen.
+• Anpassbare Position: Passen Sie die vertikale Position der Lautstärkeanzeige an Ihre Bildschirmeinrichtung an.
 
-• Genauere Lautstärkeanzeige: Die Lautstärkeleiste wurde verbessert und passt nun perfekt zu den Systemlautstärkestufen, sodass Sie Ihre aktuelle Lautstärke auf einen Blick erkennen können.
+• Verbesserte Genauigkeit: Bessere Ausrichtung der Lautstärkeanzeige für eine präzisere Darstellung.
+
+Danke, dass Sie VolumeHUD verwenden!
