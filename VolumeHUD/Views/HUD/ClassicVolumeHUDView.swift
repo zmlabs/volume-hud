@@ -77,25 +77,10 @@ struct ClassicVolumeProgressBar: View {
 
     private func fillRatio(for index: Int) -> CGFloat {
         guard !volumeState.isMuted else { return 0 }
-
-        let volume = volumeState.volume
-        
-        // Get the threshold values for this segment
-        let segmentStart = VolumeConstants.standardVolumeLevels[index]
-        let segmentEnd = VolumeConstants.standardVolumeLevels[index + 1]
-        
-        if volume >= segmentEnd {
-            // Segment is fully filled
-            return 1.0
-        } else if volume > segmentStart {
-            // Segment is partially filled
-            let segmentRange = segmentEnd - segmentStart
-            let progressInSegment = volume - segmentStart
-            return CGFloat(progressInSegment / segmentRange)
-        } else {
-            // Segment is empty
-            return 0.0
-        }
+        return VolumeCalculation.segmentFillRatio(
+            segmentIndex: index,
+            volume: volumeState.volume
+        )
     }
 }
 

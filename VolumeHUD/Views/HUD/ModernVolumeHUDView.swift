@@ -82,31 +82,11 @@ struct ModernVolumeProgressBar: View {
             }
         }
     }
-    
+
     private func calculateVisualProgress() -> CGFloat {
-        let volume = volumeState.volume
-        
-        // Find which segment the current volume falls into
-        for i in 0..<(VolumeConstants.standardVolumeLevels.count - 1) {
-            let segmentStart = VolumeConstants.standardVolumeLevels[i]
-            let segmentEnd = VolumeConstants.standardVolumeLevels[i + 1]
-            
-            if volume <= segmentEnd {
-                // Calculate progress within this segment
-                let segmentRange = segmentEnd - segmentStart
-                let progressInSegment = volume - segmentStart
-                let segmentProgress = progressInSegment / segmentRange
-                
-                // Map to visual position (each segment is 1/16 of the total width)
-                let segmentWidth = 1.0 / Float(VolumeConstants.standardVolumeLevels.count - 1)
-                let visualProgress = Float(i) * segmentWidth + segmentProgress * segmentWidth
-                
-                return CGFloat(visualProgress)
-            }
-        }
-        
-        // If we get here, volume is at maximum
-        return 1.0
+        // Use volume directly for smooth progress bar fill
+        // This supports both 16-step and 64-step (Shift+Option) adjustments
+        return CGFloat(volumeState.volume)
     }
 }
 
@@ -115,9 +95,8 @@ struct ModernVolumeProgressTicks: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // We need 17 ticks (one for each volume level point)
-            // Tick 0 = 0.0%, Tick 1 = 6.35%, ..., Tick 16 = 100%
-            ForEach(0 ..< VolumeConstants.standardVolumeLevels.count, id: \.self) { index in
+            // 17 ticks for 16 volume steps (0%, 6.25%, 12.5%, ..., 100%)
+            ForEach(0 ... VolumeCalculation.standardSteps, id: \.self) { index in
                 VStack {
                     Spacer()
                     Rectangle()
@@ -125,7 +104,7 @@ struct ModernVolumeProgressTicks: View {
                         .frame(width: 1, height: tickHeight(for: index))
                 }
                 // Add spacer between ticks except after the last one
-                if index < VolumeConstants.standardVolumeLevels.count - 1 {
+                if index < VolumeCalculation.standardSteps {
                     Spacer()
                 }
             }
@@ -133,10 +112,10 @@ struct ModernVolumeProgressTicks: View {
     }
 
     private func tickColor(for index: Int) -> Color {
-        // Each tick represents a specific volume level from the standard array
-        // Now using actual system values, so direct comparison works correctly
-        let tickLevel = VolumeConstants.standardVolumeLevels[index]
-        let isActive = !volumeState.isMuted && volumeState.volume >= tickLevel
+        let isActive = !volumeState.isMuted && VolumeCalculation.isTickActive(
+            tickIndex: index,
+            volume: volumeState.volume
+        )
         return .primary.opacity(isActive ? 0.8 : 0.3)
     }
 
