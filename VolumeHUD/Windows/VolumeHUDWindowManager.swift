@@ -17,14 +17,35 @@ class VolumeHUDWindowManager {
     private var hideTask: Task<Void, Never>?
 
     init() {
-        setupVolumeMonitoring()
+        setupObservers()
     }
 
-    private func setupVolumeMonitoring() {
+    private func setupObservers() {
+        // Volume changes
         volumeMonitor.volumeChangePublisher
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.showHUD()
+            }
+            .store(in: &cancellables)
+
+        // Preview state changes
+        let previewManager = HUDPreviewManager.shared
+
+        previewManager.$isPreviewActive
+            .sink { [weak self] isActive in
+                if isActive {
+                    self?.showPreview()
+                } else {
+                    self?.hidePreview()
+                }
+            }
+            .store(in: &cancellables)
+
+        previewManager.$bottomOffset
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.hudWindow?.updatePosition()
             }
             .store(in: &cancellables)
     }
@@ -51,6 +72,23 @@ class VolumeHUDWindowManager {
                 self?.hideHUD()
             }
         }
+    }
+
+    private func showPreview() {
+        hideTask?.cancel()
+
+        if let window = hudWindow {
+            if !window.isVisible {
+                window.showWithAnimation()
+            }
+        } else {
+            hudWindow = VolumeHUDWindow()
+            hudWindow?.showWithAnimation()
+        }
+    }
+
+    private func hidePreview() {
+        resetHideTask()
     }
 
     private func hideHUD() {

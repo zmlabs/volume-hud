@@ -14,6 +14,7 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin: Bool = false
     @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
+    @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
 
     @State var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
     @State var cancellabel: AnyCancellable?
@@ -94,6 +95,26 @@ struct SettingsView: View {
                                 .toggleStyle(.switch)
                                 .labelsHidden()
                                 .controlSize(.small)
+                                .onChange(of: liquidGlassEnable) { _, _ in
+                                    HUDPreviewManager.shared.isPreviewActive = true
+                                    HUDPreviewManager.shared.isPreviewActive = false
+                                }
+                        }
+
+                        HStack {
+                            Text("Bottom Offset")
+                                .font(.body)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Slider(value: $bottomOffset, in: 50 ... 220, onEditingChanged: { editing in
+                                HUDPreviewManager.shared.isPreviewActive = editing
+                            })
+                            .frame(width: 150)
+                            .onChange(of: bottomOffset) { _, newValue in
+                                HUDPreviewManager.shared.bottomOffset = newValue
+                            }
                         }
                     }
                     .padding(.horizontal, 16)

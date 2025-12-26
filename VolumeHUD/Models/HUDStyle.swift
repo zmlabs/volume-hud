@@ -30,4 +30,5 @@ enum AppStorageKeys {
     static let launchAtLogin = "launchAtLogin"
     static let showInMenuBar = "showInMenuBar"
     static let liquidGlassEnable = "liquidGlassEnable"
+    static let bottomOffset = "bottomOffset"
 }

@@ -40,13 +40,14 @@ class VolumeHUDWindow: NSPanel {
         isExcludedFromWindowsMenu = true
     }
 
-    private func positionAtBottomCenter() {
+    func updatePosition() {
         guard let screen = NSScreen.main else { return }
 
         let screenFrame = screen.frame
+        let bottomOffset = (UserDefaults.standard.object(forKey: AppStorageKeys.bottomOffset) as? Double) ?? 120
 
         let x = screenFrame.minX + (screenFrame.width - Self.windowWidth) / 2
-        let y = screenFrame.minY + 120
+        let y = screenFrame.minY + bottomOffset
 
         setFrame(NSRect(x: x, y: y, width: Self.windowWidth, height: Self.windowHeight), display: false)
     }
@@ -59,7 +60,7 @@ class VolumeHUDWindow: NSPanel {
     }
 
     func showWithAnimation() {
-        positionAtBottomCenter()
+        updatePosition()
 
         alphaValue = 0.0
         orderFront(nil)
