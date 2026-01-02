@@ -6,7 +6,7 @@
 //
 
 import AppKit
-import Combine
+@preconcurrency import Combine
 import Foundation
 
 class VolumeHUDWindowManager {
@@ -35,9 +35,9 @@ class VolumeHUDWindowManager {
         previewManager.$isPreviewActive
             .sink { [weak self] isActive in
                 if isActive {
-                    self?.showPreview()
+                    self?.showHUD(autoHide: false)
                 } else {
-                    self?.hidePreview()
+                    self?.resetHideTask()
                 }
             }
             .store(in: &cancellables)
@@ -50,45 +50,30 @@ class VolumeHUDWindowManager {
             .store(in: &cancellables)
     }
 
-    private func showHUD() {
-        resetHideTask()
-
-        if let window = hudWindow {
-            if !window.isVisible {
-                window.showWithAnimation()
-            }
+    private func showHUD(autoHide: Bool = true) {
+        if autoHide {
+            resetHideTask()
         } else {
+            hideTask?.cancel()
+        }
+
+        if hudWindow == nil {
             hudWindow = VolumeHUDWindow()
+        }
+        if hudWindow?.isVisible == false {
             hudWindow?.showWithAnimation()
         }
     }
 
     private func resetHideTask() {
         hideTask?.cancel()
-        hideTask = Task { [weak self] in
+        hideTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(2.5))
 
-            if !Task.isCancelled {
-                self?.hideHUD()
+            if let self, !Task.isCancelled {
+                hideHUD()
             }
         }
-    }
-
-    private func showPreview() {
-        hideTask?.cancel()
-
-        if let window = hudWindow {
-            if !window.isVisible {
-                window.showWithAnimation()
-            }
-        } else {
-            hudWindow = VolumeHUDWindow()
-            hudWindow?.showWithAnimation()
-        }
-    }
-
-    private func hidePreview() {
-        resetHideTask()
     }
 
     private func hideHUD() {
@@ -99,6 +84,10 @@ class VolumeHUDWindowManager {
 
     deinit {
         hideTask?.cancel()
-        hudWindow?.orderOut(nil)
+        if let window = hudWindow {
+            Task { @MainActor in
+                window.orderOut(nil)
+            }
+        }
     }
 }

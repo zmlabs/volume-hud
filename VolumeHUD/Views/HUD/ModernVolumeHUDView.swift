@@ -15,7 +15,7 @@ struct ModernVolumeHUDView: View {
     var body: some View {
         let content = HStack(spacing: 16) {
             // Volume icon
-            Image(systemName: volumeIconName)
+            Image(systemName: volumeState.iconName)
                 .font(.system(size: 24, weight: .medium))
                 .frame(width: 28)
                 .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
@@ -47,20 +47,6 @@ struct ModernVolumeHUDView: View {
                 .clipShape(Capsule())
         }
     }
-
-    private var volumeIconName: String {
-        if volumeState.isMuted {
-            return "speaker.slash.fill"
-        } else if volumeState.volume == 0 {
-            return "speaker.fill"
-        } else if volumeState.volume < 0.33 {
-            return "speaker.wave.1.fill"
-        } else if volumeState.volume < 0.66 {
-            return "speaker.wave.2.fill"
-        } else {
-            return "speaker.wave.3.fill"
-        }
-    }
 }
 
 struct ModernVolumeProgressBar: View {
@@ -74,7 +60,7 @@ struct ModernVolumeProgressBar: View {
                     .fill(.primary.opacity(0.2))
 
                 // Progress fill
-                if !volumeState.isMuted && volumeState.volume > 0 {
+                if !volumeState.isMuted, volumeState.volume > 0 {
                     Capsule()
                         .fill(.primary)
                         .frame(width: geometry.size.width * calculateVisualProgress())
@@ -86,7 +72,7 @@ struct ModernVolumeProgressBar: View {
     private func calculateVisualProgress() -> CGFloat {
         // Use volume directly for smooth progress bar fill
         // This supports both 16-step and 64-step (Shift+Option) adjustments
-        return CGFloat(volumeState.volume)
+        CGFloat(volumeState.volume)
     }
 }
 

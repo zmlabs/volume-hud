@@ -16,7 +16,7 @@ struct ClassicVolumeHUDView: View {
         let content = VStack(spacing: 0) {
             // Upper section: Volume icon
             VStack {
-                Image(systemName: volumeIconName)
+                Image(systemName: volumeState.iconName)
                     .font(.system(size: 72, weight: .regular))
                     .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                     .contentTransition(
@@ -40,20 +40,6 @@ struct ClassicVolumeHUDView: View {
             content
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-    }
-
-    private var volumeIconName: String {
-        if volumeState.isMuted {
-            return "speaker.slash.fill"
-        } else if volumeState.volume == 0 {
-            return "speaker.fill"
-        } else if volumeState.volume < 0.33 {
-            return "speaker.wave.1.fill"
-        } else if volumeState.volume < 0.66 {
-            return "speaker.wave.2.fill"
-        } else {
-            return "speaker.wave.3.fill"
         }
     }
 }
@@ -95,7 +81,7 @@ private struct VolumeSegment: View {
         Rectangle()
             .fill(.secondary.opacity(0.3))
             .overlay(alignment: .leading) {
-                if fillRatio > 0 && isActive {
+                if fillRatio > 0, isActive {
                     Rectangle()
                         .fill(.primary)
                         .frame(width: Self.size * fillRatio)

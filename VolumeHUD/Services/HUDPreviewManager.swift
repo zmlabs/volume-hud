@@ -2,10 +2,10 @@
 //  HUDPreviewManager.swift
 //  VolumeHUD
 //
-//  Created by zenni on 2025/12/27.
+//  Created by yu on 2025/12/27.
 //
 
-import Combine
+@preconcurrency import Combine
 import Foundation
 
 class HUDPreviewManager: ObservableObject {

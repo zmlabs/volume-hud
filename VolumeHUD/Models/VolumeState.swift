@@ -9,7 +9,7 @@ import CoreAudio
 import Foundation
 
 /// Represents the current system volume state
-struct VolumeState {
+struct VolumeState: Equatable {
     let volume: Float // 0.0-1.0 from Core Audio
     let isMuted: Bool
     let outputDeviceID: AudioDeviceID
@@ -22,19 +22,20 @@ struct VolumeState {
 
     /// Check if this state represents a volume/mute change that should trigger UI updates
     func hasVolumeOrMuteChange(from previousState: VolumeState) -> Bool {
-        isMuted != previousState.isMuted || abs(volume - previousState.volume) > 0.001
+        isMuted != previousState.isMuted || volume != previousState.volume
     }
 
     /// Check if the device changed
     func hasDeviceChange(from previousState: VolumeState) -> Bool {
         outputDeviceID != previousState.outputDeviceID
     }
-}
 
-extension VolumeState: Equatable {
-    static func == (lhs: VolumeState, rhs: VolumeState) -> Bool {
-        abs(lhs.volume - rhs.volume) < 0.0001 &&
-            lhs.isMuted == rhs.isMuted &&
-            lhs.outputDeviceID == rhs.outputDeviceID
+    /// Volume icon name based on current state
+    var iconName: String {
+        if isMuted { return "speaker.slash.fill" }
+        if volume == 0 { return "speaker.fill" }
+        if volume < 0.33 { return "speaker.wave.1.fill" }
+        if volume < 0.66 { return "speaker.wave.2.fill" }
+        return "speaker.wave.3.fill"
     }
 }

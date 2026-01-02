@@ -17,9 +17,9 @@ enum HUDStyle: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .classic:
-            return NSLocalizedString("Classic", comment: "Classic")
+            NSLocalizedString("Classic", comment: "Classic")
         case .modern:
-            return NSLocalizedString("Modern", comment: "Modern")
+            NSLocalizedString("Modern", comment: "Modern")
         }
     }
 }

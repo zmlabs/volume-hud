@@ -5,7 +5,7 @@
 //  Created by yu on 2025/9/23.
 //
 
-import Combine
+@preconcurrency import Combine
 import ServiceManagement
 import SwiftUI
 
@@ -16,8 +16,8 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
 
-    @State var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
-    @State var cancellabel: AnyCancellable?
+    @State private var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
+    @State private var cancellable: AnyCancellable?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -168,11 +168,14 @@ struct SettingsView: View {
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
 
-            cancellabel = VolumeMonitor.shared.volumeChangePublisher
+            cancellable = VolumeMonitor.shared.volumeChangePublisher
                 .receive(on: RunLoop.main)
                 .sink {
                     volumeState = $0
                 }
+        }
+        .onDisappear {
+            cancellable?.cancel()
         }
     }
 

@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Combine
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -88,7 +87,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func updateMenuBarVisibility(visible: Bool) {
-        print(visible)
         if visible {
             showStatusItem()
         } else {

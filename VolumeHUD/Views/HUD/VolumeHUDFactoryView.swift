@@ -5,15 +5,15 @@
 //  Created by yu on 2025/9/23.
 //
 
-import Combine
+@preconcurrency import Combine
 import SwiftUI
 
 /// A SwiftUI view that automatically switches between different HUD styles based on user settings
 struct VolumeHUDFactoryView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
 
-    @State var volumeState: VolumeState = .init()
-    @State var cancellabel: AnyCancellable?
+    @State private var volumeState: VolumeState = .init()
+    @State private var cancellable: AnyCancellable?
 
     init() {
         let initialVolumeState = VolumeMonitor.shared.currentVolumeState
@@ -31,11 +31,14 @@ struct VolumeHUDFactoryView: View {
         }
         .frame(width: 280, height: 200)
         .onAppear {
-            cancellabel = VolumeMonitor.shared.volumeChangePublisher
+            cancellable = VolumeMonitor.shared.volumeChangePublisher
                 .receive(on: RunLoop.main)
                 .sink {
                     volumeState = $0
                 }
+        }
+        .onDisappear {
+            cancellable?.cancel()
         }
     }
 }

@@ -78,7 +78,9 @@ class VolumeHUDWindow: NSPanel {
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             self.animator().alphaValue = 0.0
         } completionHandler: {
-            self.orderOut(nil)
+            Task { @MainActor [weak self] in
+                self?.orderOut(nil)
+            }
         }
     }
 }
