@@ -1,6 +1,6 @@
 //
-//  VolumeHUDWindowManager.swift
-//  VolumeHUD
+//  BetterOSDWindowManager.swift
+//  BetterOSD
 //
 //  Created by yu on 2025/9/23.
 //
@@ -9,11 +9,11 @@ import AppKit
 @preconcurrency import Combine
 import Foundation
 
-class VolumeHUDWindowManager {
+class BetterOSDWindowManager {
     private let volumeMonitor = VolumeMonitor.shared
     private let mediaKeyMonitor = MediaKeyMonitor.shared
 
-    private var hudWindow: VolumeHUDWindow?
+    private var hudWindow: BetterOSDWindow?
     private var cancellables = Set<AnyCancellable>()
     private var hideTask: Task<Void, Never>?
 
@@ -69,7 +69,7 @@ class VolumeHUDWindowManager {
         }
 
         if hudWindow == nil {
-            hudWindow = VolumeHUDWindow()
+            hudWindow = BetterOSDWindow()
         }
         if hudWindow?.isVisible == false {
             hudWindow?.showWithAnimation()

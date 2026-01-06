@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  VolumeHUD
+//  BetterOSD
 //
 //  Created by yu on 2025/9/23.
 //
@@ -174,7 +174,7 @@ struct SettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     HStack(spacing: 4) {
-                        Text("VolumeHUD is an")
+                        Text("BetterOSD is an")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         Link("open-source", destination: URL(string: "https://github.com/zmlabs/volume-hud")!)

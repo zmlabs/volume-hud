@@ -1,6 +1,6 @@
 //
-//  VolumeHUDWindow.swift
-//  VolumeHUD
+//  BetterOSDWindow.swift
+//  BetterOSD
 //
 //  Created by yu on 2025/9/23.
 //
@@ -8,10 +8,10 @@
 import AppKit
 import SwiftUI
 
-class VolumeHUDWindow: NSPanel {
+class BetterOSDWindow: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
-    private let hostingView: NSHostingView<VolumeHUDFactoryView>
+    private let hostingView: NSHostingView<BetterOSDFactoryView>
 
     private static let windowWidth: CGFloat = HUDLayout.windowSize.width
     private static let windowHeight: CGFloat = HUDLayout.windowSize.height
@@ -24,7 +24,7 @@ class VolumeHUDWindow: NSPanel {
     #endif
 
     init() {
-        let contentView = VolumeHUDFactoryView()
+        let contentView = BetterOSDFactoryView()
         hostingView = NSHostingView(rootView: contentView)
 
         super.init(

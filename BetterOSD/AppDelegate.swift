@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  VolumeHUD
+//  BetterOSD
 //
 //  Created by yu on 2025/9/23.
 //
@@ -9,7 +9,7 @@ import AppKit
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    private let volumeHUDWindowManager = VolumeHUDWindowManager()
+    private let volumeHUDWindowManager = BetterOSDWindowManager()
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
 
@@ -34,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem?.button {
-            let customIcon = NSImage(named: "custom.waveform.low.square.fill")
+            let customIcon = NSImage(systemSymbolName: "iphone.pattern.diagonalline.on.rectangle.portrait.dashed", accessibilityDescription: "Better OSD")
             customIcon?.size = NSSize(width: 16, height: 16)
             button.image = customIcon
             button.target = self

@@ -1,6 +1,6 @@
 //
 //  HUDLayout.swift
-//  VolumeHUD
+//  BetterOSD
 //
 //  Created by yu on 2026/1/5.
 //

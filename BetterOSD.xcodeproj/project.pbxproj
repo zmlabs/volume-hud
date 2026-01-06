@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		9A7AC0DF2E826CD000E45EAD /* VolumeHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VolumeHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A7AC0DF2E826CD000E45EAD /* BetterOSD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterOSD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9A7AC0E12E826CD000E45EAD /* VolumeHUD */ = {
+		9A7AC0E12E826CD000E45EAD /* BetterOSD */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = VolumeHUD;
+			path = BetterOSD;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		9A7AC0D62E826CD000E45EAD = {
 			isa = PBXGroup;
 			children = (
-				9A7AC0E12E826CD000E45EAD /* VolumeHUD */,
+				9A7AC0E12E826CD000E45EAD /* BetterOSD */,
 				9A7AC0E02E826CD000E45EAD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		9A7AC0E02E826CD000E45EAD /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9A7AC0DF2E826CD000E45EAD /* VolumeHUD.app */,
+				9A7AC0DF2E826CD000E45EAD /* BetterOSD.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9A7AC0DE2E826CD000E45EAD /* VolumeHUD */ = {
+		9A7AC0DE2E826CD000E45EAD /* BetterOSD */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9A7AC0EA2E826CD100E45EAD /* Build configuration list for PBXNativeTarget "VolumeHUD" */;
+			buildConfigurationList = 9A7AC0EA2E826CD100E45EAD /* Build configuration list for PBXNativeTarget "BetterOSD" */;
 			buildPhases = (
 				9A7AC0DB2E826CD000E45EAD /* Sources */,
 				9A7AC0DC2E826CD000E45EAD /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9A7AC0E12E826CD000E45EAD /* VolumeHUD */,
+				9A7AC0E12E826CD000E45EAD /* BetterOSD */,
 			);
-			name = VolumeHUD;
+			name = BetterOSD;
 			packageProductDependencies = (
 			);
-			productName = VolumeHUD;
-			productReference = 9A7AC0DF2E826CD000E45EAD /* VolumeHUD.app */;
+			productName = BetterOSD;
+			productReference = 9A7AC0DF2E826CD000E45EAD /* BetterOSD.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 9A7AC0DA2E826CD000E45EAD /* Build configuration list for PBXProject "VolumeHUD" */;
+			buildConfigurationList = 9A7AC0DA2E826CD000E45EAD /* Build configuration list for PBXProject "BetterOSD" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -106,7 +106,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9A7AC0DE2E826CD000E45EAD /* VolumeHUD */,
+				9A7AC0DE2E826CD000E45EAD /* BetterOSD */,
 			);
 		};
 /* End PBXProject section */
@@ -337,7 +337,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Volume HUD";
+				INFOPLIST_KEY_CFBundleDisplayName = "Better OSD";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -375,7 +375,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Volume HUD";
+				INFOPLIST_KEY_CFBundleDisplayName = "Better OSD";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -412,7 +412,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Volume HUD";
+				INFOPLIST_KEY_CFBundleDisplayName = "Better OSD";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -437,7 +437,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9A7AC0DA2E826CD000E45EAD /* Build configuration list for PBXProject "VolumeHUD" */ = {
+		9A7AC0DA2E826CD000E45EAD /* Build configuration list for PBXProject "BetterOSD" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9A7AC0E82E826CD100E45EAD /* Debug */,
@@ -447,7 +447,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9A7AC0EA2E826CD100E45EAD /* Build configuration list for PBXNativeTarget "VolumeHUD" */ = {
+		9A7AC0EA2E826CD100E45EAD /* Build configuration list for PBXNativeTarget "BetterOSD" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9A7AC0EB2E826CD100E45EAD /* Debug */,

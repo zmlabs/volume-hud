@@ -1,6 +1,6 @@
 //
-//  VolumeHUDFactoryView.swift
-//  VolumeHUD
+//  BetterOSDFactoryView.swift
+//  BetterOSD
 //
 //  Created by yu on 2025/9/23.
 //
@@ -9,7 +9,7 @@
 import SwiftUI
 
 /// A SwiftUI view that automatically switches between different HUD styles based on user settings
-struct VolumeHUDFactoryView: View {
+struct BetterOSDFactoryView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
 
     @State private var volumeState: VolumeState = .init()
