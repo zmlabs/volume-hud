@@ -9,7 +9,6 @@ import AppKit
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    private let volumeHUDWindowManager = BetterOSDWindowManager()
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
 

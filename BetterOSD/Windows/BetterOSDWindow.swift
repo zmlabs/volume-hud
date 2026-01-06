@@ -15,13 +15,12 @@ class BetterOSDWindow: NSPanel {
 
     private static let windowWidth: CGFloat = HUDLayout.windowSize.width
     private static let windowHeight: CGFloat = HUDLayout.windowSize.height
-    #if PRIVATE_GLASS
-        @objc(_hasActiveAppearance) dynamic func _hasActiveAppearance() -> Bool { true }
-        @objc(_hasActiveAppearanceIgnoringKeyFocus) dynamic func _hasActiveAppearanceIgnoringKeyFocus() -> Bool { true }
-        @objc(_hasActiveControls) dynamic func _hasActiveControls() -> Bool { true }
-        @objc(_hasKeyAppearance) dynamic func _hasKeyAppearance() -> Bool { true }
-        @objc(_hasMainAppearance) dynamic func _hasMainAppearance() -> Bool { true }
-    #endif
+
+    @objc(_hasActiveAppearance) dynamic func _hasActiveAppearance() -> Bool { true }
+    @objc(_hasActiveAppearanceIgnoringKeyFocus) dynamic func _hasActiveAppearanceIgnoringKeyFocus() -> Bool { true }
+    @objc(_hasActiveControls) dynamic func _hasActiveControls() -> Bool { true }
+    @objc(_hasKeyAppearance) dynamic func _hasKeyAppearance() -> Bool { true }
+    @objc(_hasMainAppearance) dynamic func _hasMainAppearance() -> Bool { true }
 
     init() {
         let contentView = BetterOSDFactoryView()

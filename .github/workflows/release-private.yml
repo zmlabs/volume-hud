@@ -12,13 +12,13 @@ jobs:
     permissions:
       contents: write
     env:
-      APP_NAME: VolumeHUD
-      SCHEME: VolumeHUD
-      CONFIGURATION: Release-Private
-      ARCHIVE_PATH: ${{ github.workspace }}/build/VolumeHUD.xcarchive
+      APP_NAME: BetterOSD
+      SCHEME: BetterOSD
+      CONFIGURATION: Release
+      ARCHIVE_PATH: ${{ github.workspace }}/build/BetterOSD.xcarchive
       EXPORT_PATH: ${{ github.workspace }}/build/export
-      DMG_NAME: VolumeHUD
-      DMG_PATH: ${{ github.workspace }}/build/VolumeHUD.dmg
+      DMG_NAME: BetterOSD
+      DMG_PATH: ${{ github.workspace }}/build/BetterOSD.dmg
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
           </plist>
           PLIST
 
-      - name: Archive (Release-Private)
+      - name: Archive
         run: |
           xcodebuild \
             -scheme "$SCHEME" \
@@ -105,7 +105,7 @@ jobs:
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VolumeHUD-Release-Private-dmg
+          name: BetterOSD-dmg
           path: "${{ env.DMG_PATH }}"
 
       - name: Publish GitHub Release

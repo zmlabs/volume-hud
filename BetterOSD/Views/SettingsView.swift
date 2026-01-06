@@ -129,30 +129,28 @@ struct SettingsView: View {
                             }
                         }
 
-                        #if PRIVATE_GLASS
-                            if liquidGlassEnable {
-                                HStack {
-                                    Text("Glass Variant")
-                                        .font(.body)
-                                        .foregroundStyle(.primary)
+                        if liquidGlassEnable {
+                            HStack {
+                                Text("Glass Variant")
+                                    .font(.body)
+                                    .foregroundStyle(.primary)
 
-                                    Spacer()
+                                Spacer()
 
-                                    Picker("Glass Variant", selection: $glassVariant) {
-                                        ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
-                                            Text("\(value)")
-                                                .tag(value)
-                                        }
-                                    }
-                                    .labelsHidden()
-                                    .pickerStyle(.automatic)
-                                    .onChange(of: glassVariant) { _, _ in
-                                        HUDPreviewManager.shared.isPreviewActive = true
-                                        HUDPreviewManager.shared.isPreviewActive = false
+                                Picker("Glass Variant", selection: $glassVariant) {
+                                    ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
+                                        Text("\(value)")
+                                            .tag(value)
                                     }
                                 }
+                                .labelsHidden()
+                                .pickerStyle(.automatic)
+                                .onChange(of: glassVariant) { _, _ in
+                                    HUDPreviewManager.shared.isPreviewActive = true
+                                    HUDPreviewManager.shared.isPreviewActive = false
+                                }
                             }
-                        #endif
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

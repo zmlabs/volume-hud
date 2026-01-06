@@ -1,9 +1,0 @@
-Novedades de esta versión:
-
-• Compatibilidad con teclas multimedia: Controla el volumen directamente con las teclas multimedia de tu teclado.
-
-• Precisión mejorada: Mayor precisión en la monitorización y visualización del volumen.
-
-• Corrección de errores y mejoras de rendimiento.
-
-¡Gracias por usar BetterOSD!

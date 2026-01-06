@@ -2,7 +2,6 @@
   "sourceLanguage" : "en",
   "strings" : {
     "%lld" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -466,7 +465,6 @@
       }
     },
     "Glass Variant" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

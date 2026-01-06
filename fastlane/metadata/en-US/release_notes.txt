@@ -1,9 +1,0 @@
-What's new in this version:
-
-• Media Key Support: Control volume directly with your keyboard's media keys.
-
-• Improved Accuracy: Better volume monitoring and display precision.
-
-• Bug fixes and performance improvements.
-
-Thank you for using BetterOSD!
