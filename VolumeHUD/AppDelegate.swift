@@ -93,4 +93,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             hideStatusItem()
         }
     }
+
+    func applicationWillTerminate(_: Notification) {
+        MediaKeyMonitor.shared.stop()
+    }
 }
