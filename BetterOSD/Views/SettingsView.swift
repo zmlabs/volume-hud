@@ -5,6 +5,7 @@
 //  Created by yu on 2025/9/23.
 //
 
+import AppKit
 @preconcurrency import Combine
 import ServiceManagement
 import SwiftUI
@@ -19,6 +20,7 @@ struct SettingsView: View {
 
     @State private var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
     @State private var cancellable: AnyCancellable?
+    @State private var accessibilityGranted = MediaKeyMonitor.shared.hasAccessibilityPermission()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -27,6 +29,15 @@ struct SettingsView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(24)
+
+            if !accessibilityGranted {
+                AccessibilityPermissionBanner {
+                    MediaKeyMonitor.shared.requestAccessibilityPermission()
+                    refreshAccessibilityStatus()
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+            }
 
             VStack(spacing: 24) {
                 // Appearance Section
@@ -193,12 +204,16 @@ struct SettingsView: View {
         .frame(width: 580)
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
+            refreshAccessibilityStatus()
 
             cancellable = VolumeMonitor.shared.volumeChangePublisher
                 .receive(on: RunLoop.main)
                 .sink {
                     volumeState = $0
                 }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refreshAccessibilityStatus()
         }
         .onDisappear {
             cancellable?.cancel()
@@ -217,6 +232,15 @@ struct SettingsView: View {
         }
     }
 
+    private func refreshAccessibilityStatus() {
+        let trusted = MediaKeyMonitor.shared.hasAccessibilityPermission()
+        accessibilityGranted = trusted
+
+        if trusted {
+            MediaKeyMonitor.shared.start()
+        }
+    }
+
     @ViewBuilder
     private func previewForStyle(_ style: HUDStyle) -> some View {
         switch style {
@@ -229,6 +253,44 @@ struct SettingsView: View {
                 volumeState: volumeState
             )
         }
+    }
+}
+
+struct AccessibilityPermissionBanner: View {
+    let onRequest: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.orange)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Accessibility Permission Needed")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text("Enable access so BetterOSD can listen for media keys.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button("Open Settings") {
+                onRequest()
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.orange.opacity(0.12))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 

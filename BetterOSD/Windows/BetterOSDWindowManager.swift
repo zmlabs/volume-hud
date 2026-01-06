@@ -22,7 +22,7 @@ class BetterOSDWindowManager {
     }
 
     private func setupObservers() {
-        mediaKeyMonitor.start(promptAccessibility: true)
+        mediaKeyMonitor.start()
 
         let volumeChanges = volumeMonitor.volumeChangePublisher
             .map { _ in () }

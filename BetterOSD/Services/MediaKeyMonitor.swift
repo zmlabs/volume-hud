@@ -26,10 +26,43 @@ final class MediaKeyMonitor {
 
     private init() {}
 
-    @discardableResult
-    func start(promptAccessibility: Bool = true) -> Bool {
+    func hasAccessibilityPermission() -> Bool {
+        AXIsProcessTrusted()
+    }
+
+    @MainActor
+    func requestAccessibilityPermission() {
+        guard !hasAccessibilityPermission() else { return }
+
+        NSApp.activate(ignoringOtherApps: true)
+
+        let alert = NSAlert()
+        alert.messageText = "Allow Accessibility Access"
+        alert.informativeText = "BetterOSD needs this to listen for media keys. Open System Settings and enable BetterOSD."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Not Now")
+
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else { return }
+
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+
         let promptKey = "AXTrustedCheckOptionPrompt" as CFString
-        let options = [promptKey: promptAccessibility as CFBoolean] as CFDictionary
+        let options = [promptKey: true as CFBoolean] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(options)
+    }
+
+    @discardableResult
+    func start() -> Bool {
+        if globalMonitor != nil || localMonitor != nil {
+            return true
+        }
+
+        let promptKey = "AXTrustedCheckOptionPrompt" as CFString
+        let options = [promptKey: true as CFBoolean] as CFDictionary
         guard AXIsProcessTrustedWithOptions(options) else { return false }
 
         let mask: NSEvent.EventTypeMask = [.systemDefined]
