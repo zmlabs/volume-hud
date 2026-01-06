@@ -1,7 +1,9 @@
-Was gibt es Neues:
+Was ist neu in dieser Version:
 
-• Anpassbare Position: Passen Sie die vertikale Position der Lautstärkeanzeige an Ihre Bildschirmeinrichtung an.
+• Medienunterstützung: Steuern Sie die Lautstärke direkt mit den Medientasten Ihrer Tastatur.
 
-• Verbesserte Genauigkeit: Bessere Ausrichtung der Lautstärkeanzeige für eine präzisere Darstellung.
+• Verbesserte Genauigkeit: Präzisere Lautstärkeüberwachung und -anzeige.
 
-Danke, dass Sie VolumeHUD verwenden!
+• Fehlerbehebungen und Leistungsverbesserungen.
+
+Danke, dass Sie BetterOSD verwenden!

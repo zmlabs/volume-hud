@@ -1,1 +1,1 @@
-https://github.com/zmlabs/volume-hud/issues
+https://github.com/zmlabs/better-osd/issues

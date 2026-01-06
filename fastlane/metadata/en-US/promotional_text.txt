@@ -1,1 +1,1 @@
-Beautiful volume overlay with style preview and customizable position.
+Beautiful volume overlay with media key support and improved accuracy.

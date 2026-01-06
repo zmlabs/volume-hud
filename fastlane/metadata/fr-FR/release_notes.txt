@@ -1,7 +1,9 @@
 Nouveautés de cette version :
 
-• Position personnalisable : Ajustez la position verticale de l'affichage du volume pour qu'il s'adapte parfaitement à votre configuration d'écran.
+• Prise en charge des touches multimédias : Contrôlez le volume directement avec les touches multimédias de votre clavier.
 
-• Précision améliorée : Meilleur alignement de l'affichage du volume pour une représentation plus précise.
+• Précision améliorée : Surveillance et affichage du volume plus précis.
 
-Merci d'utiliser VolumeHUD !
+• Corrections de bugs et améliorations des performances.
+
+Merci d'utiliser BetterOSD !

@@ -1,7 +1,9 @@
 What's new in this version:
 
-• Customizable Position: Adjust the vertical position of the volume display to perfectly fit your screen setup.
+• Media Key Support: Control volume directly with your keyboard's media keys.
 
-• Improved Accuracy: Better volume display alignment for a more precise visual representation.
+• Improved Accuracy: Better volume monitoring and display precision.
 
-Thank you for using VolumeHUD!
+• Bug fixes and performance improvements.
+
+Thank you for using BetterOSD!

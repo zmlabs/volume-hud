@@ -188,7 +188,7 @@ struct SettingsView: View {
                         Text("BetterOSD is an")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Link("open-source", destination: URL(string: "https://github.com/zmlabs/volume-hud")!)
+                        Link("open-source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .underline()

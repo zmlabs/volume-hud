@@ -1,7 +1,9 @@
 Novedades de esta versión:
 
-• Posición personalizable: Ajuste la posición vertical de la visualización del volumen para que se adapte perfectamente a su configuración de pantalla.
+• Compatibilidad con teclas multimedia: Controla el volumen directamente con las teclas multimedia de tu teclado.
 
-• Precisión mejorada: Mejor alineación de la visualización del volumen para una representación más precisa.
+• Precisión mejorada: Mayor precisión en la monitorización y visualización del volumen.
 
-¡Gracias por usar VolumeHUD!
+• Corrección de errores y mejoras de rendimiento.
+
+¡Gracias por usar BetterOSD!

@@ -1,4 +1,4 @@
-Volume-HUD is a macOS utility designed for users who are accustomed to the volume indicator from older macOS versions. It provides more intuitive and less distracting visual feedback, allowing you to instantly know the current volume status when adjusting it with your keyboard, without having to shift your gaze to the corner of the screen.
+Better OSD is a macOS utility designed for users who are accustomed to the volume indicator from older macOS versions. It provides more intuitive and less distracting visual feedback, allowing you to instantly know the current volume status when adjusting it with your keyboard, without having to shift your gaze to the corner of the screen.
 
 Key Features:
 
@@ -6,7 +6,7 @@ Key Features:
 - Lightweight & Efficient: As a utility that runs in the background, it has been optimized for negligible system resource usage and will not cause any impact on your computer's performance.
 - Built for Modern macOS: Fully compatible with the latest macOS versions to ensure stable operation.
 
-If you are looking for a way to replace the default macOS volume indicator, Volume-HUD provides a reliable and classic solution.
+If you are looking for a way to replace the default macOS volume indicator, better-osd provides a reliable and classic solution.
 
-Privacy Policy: https://zmlabs.app/volume-hud/privacy
-Terms of Use: https://zmlabs.app/volume-hud/terms
+Privacy Policy: https://zmlabs.app/better-osd/privacy
+Terms of Use: https://zmlabs.app/better-osd/terms

@@ -1,1 +1,1 @@
-Schöne Lautstärkanzeige mit Stilvorschau und anpassbarer Position.
+Schöne Lautstärkanzeige mit Medienunterstützung und verbesserter Genauigkeit.

@@ -1,4 +1,4 @@
-Volume-HUD 是一款macOS系统工具，专为习惯了旧版 macOS 音量提示的用户设计。它提供了更直观、干扰更少的视觉反馈，当您通过键盘调整音量时，无需将视线移动到屏幕角落，即可即时了解当前的音量状态。
+Better OSD 是一款macOS系统工具，专为习惯了旧版 macOS 音量提示的用户设计。它提供了更直观、干扰更少的视觉反馈，当您通过键盘调整音量时，无需将视线移动到屏幕角落，即可即时了解当前的音量状态。
 
 核心功能：
 
@@ -6,7 +6,7 @@ Volume-HUD 是一款macOS系统工具，专为习惯了旧版 macOS 音量提示
 - 轻巧且高效： 作为一款常驻后台的工具，它经过优化，系统资源占用可忽略不计，不会对您的电脑性能造成任何影响。
 - 为现代 macOS 构建： 完全兼容最新的 macOS 版本，确保稳定运行。
 
-如果您正在寻找一种方法来替换 macOS 默认的音量提示，Volume-HUD 提供了一个可靠且经典的解决方案。
+如果您正在寻找一种方法来替换 macOS 默认的音量提示，better-osd 提供了一个可靠且经典的解决方案。
 
-隐私政策: https://zmlabs.app/volume-hud/privacy
-使用条款: https://zmlabs.app/volume-hud/terms
+隐私政策: https://zmlabs.app/better-osd/privacy
+使用条款: https://zmlabs.app/better-osd/terms

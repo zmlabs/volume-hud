@@ -1,1 +1,1 @@
-Belle superposition de volume avec aperçu de style et position personnalisable.
+Belle superposition de volume avec support des touches multimédias et précision améliorée.

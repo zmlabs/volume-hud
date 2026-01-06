@@ -1,4 +1,4 @@
-Volume-HUD es una utilidad de macOS diseñada para usuarios acostumbrados al indicador de volumen de versiones anteriores de macOS. Proporciona una respuesta visual más intuitiva y con menos distracciones, permitiéndote saber al instante el estado actual del volumen al ajustarlo con el teclado, sin necesidad de desviar la mirada a la esquina de la pantalla.
+Better OSD es una utilidad de macOS diseñada para usuarios acostumbrados al indicador de volumen de versiones anteriores de macOS. Proporciona una respuesta visual más intuitiva y con menos distracciones, permitiéndote saber al instante el estado actual del volumen al ajustarlo con el teclado, sin necesidad de desviar la mirada a la esquina de la pantalla.
 
 Características principales:
 
@@ -6,7 +6,7 @@ Características principales:
 - Ligero y eficiente: Como utilidad que se ejecuta en segundo plano, ha sido optimizada para un uso de recursos del sistema insignificante y no afectará el rendimiento de tu ordenador.
 - Creado para el macOS moderno: Totalmente compatible con las últimas versiones de macOS para garantizar un funcionamiento estable.
 
-Si estás buscando una forma de reemplazar el indicador de volumen predeterminado de macOS, Volume-HUD ofrece una solución fiable y clásica.
+Si estás buscando una forma de reemplazar el indicador de volumen predeterminado de macOS, better-osd ofrece una solución fiable y clásica.
 
-Política de privacidad: https://zmlabs.app/volume-hud/privacy
-Términos de uso: https://zmlabs.app/volume-hud/terms
+Política de privacidad: https://zmlabs.app/better-osd/privacy
+Términos de uso: https://zmlabs.app/better-osd/terms
