@@ -14,7 +14,6 @@ struct VolumeHUDFactoryView: View {
 
     @State private var volumeState: VolumeState = .init()
     @State private var cancellable: AnyCancellable?
-
     init() {
         let initialVolumeState = VolumeMonitor.shared.currentVolumeState
         _volumeState = State(initialValue: initialVolumeState)
@@ -29,7 +28,8 @@ struct VolumeHUDFactoryView: View {
                 ModernVolumeHUDView(volumeState: volumeState)
             }
         }
-        .frame(width: 280, height: 200)
+        .frame(width: HUDLayout.contentSize.width, height: HUDLayout.contentSize.height)
+        .padding(HUDLayout.windowInset)
         .onAppear {
             cancellable = VolumeMonitor.shared.volumeChangePublisher
                 .receive(on: RunLoop.main)

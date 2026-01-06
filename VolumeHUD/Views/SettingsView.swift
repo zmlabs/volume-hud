@@ -15,6 +15,7 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
+    @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
     @State private var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
     @State private var cancellable: AnyCancellable?
@@ -116,6 +117,31 @@ struct SettingsView: View {
                                 HUDPreviewManager.shared.bottomOffset = newValue
                             }
                         }
+
+                        #if PRIVATE_GLASS
+                            if liquidGlassEnable {
+                                HStack {
+                                    Text("Glass Variant")
+                                        .font(.body)
+                                        .foregroundStyle(.primary)
+
+                                    Spacer()
+
+                                    Picker("Glass Variant", selection: $glassVariant) {
+                                        ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
+                                            Text("\(value)")
+                                                .tag(value)
+                                        }
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.automatic)
+                                    .onChange(of: glassVariant) { _, _ in
+                                        HUDPreviewManager.shared.isPreviewActive = true
+                                        HUDPreviewManager.shared.isPreviewActive = false
+                                    }
+                                }
+                            }
+                        #endif
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

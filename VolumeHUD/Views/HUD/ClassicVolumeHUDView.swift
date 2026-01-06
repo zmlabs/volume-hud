@@ -11,6 +11,7 @@ struct ClassicVolumeHUDView: View {
     let volumeState: VolumeState
 
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
+    @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
     var body: some View {
         let content = VStack(spacing: 0) {
@@ -34,8 +35,9 @@ struct ClassicVolumeHUDView: View {
         .frame(width: 200, height: 200)
 
         if liquidGlassEnable {
-            content
-                .glassEffect(.regular, in: .rect(cornerRadius: 16.0))
+            GlassEffectContainer(cornerRadius: 16, variant: glassVariant) {
+                content
+            }
         } else {
             content
                 .background(.ultraThinMaterial)

@@ -9,18 +9,27 @@ import AppKit
 import SwiftUI
 
 class VolumeHUDWindow: NSPanel {
-    private let hostingController: NSHostingController<VolumeHUDFactoryView>
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+    private let hostingView: NSHostingView<VolumeHUDFactoryView>
 
-    private static let windowWidth: CGFloat = 280
-    private static let windowHeight: CGFloat = 200
+    private static let windowWidth: CGFloat = HUDLayout.windowSize.width
+    private static let windowHeight: CGFloat = HUDLayout.windowSize.height
+    #if PRIVATE_GLASS
+        @objc(_hasActiveAppearance) dynamic func _hasActiveAppearance() -> Bool { true }
+        @objc(_hasActiveAppearanceIgnoringKeyFocus) dynamic func _hasActiveAppearanceIgnoringKeyFocus() -> Bool { true }
+        @objc(_hasActiveControls) dynamic func _hasActiveControls() -> Bool { true }
+        @objc(_hasKeyAppearance) dynamic func _hasKeyAppearance() -> Bool { true }
+        @objc(_hasMainAppearance) dynamic func _hasMainAppearance() -> Bool { true }
+    #endif
 
     init() {
         let contentView = VolumeHUDFactoryView()
-        hostingController = NSHostingController(rootView: contentView)
+        hostingView = NSHostingView(rootView: contentView)
 
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: Self.windowWidth, height: Self.windowHeight),
-            styleMask: [.nonactivatingPanel],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -32,12 +41,14 @@ class VolumeHUDWindow: NSPanel {
     private func setupWindow() {
         isFloatingPanel = true
         level = .statusBar
-        backgroundColor = NSColor.clear
         isOpaque = false
+        backgroundColor = .clear
         hasShadow = false
-        ignoresMouseEvents = true
-
-        isExcludedFromWindowsMenu = true
+        titleVisibility = .hidden
+        titlebarAppearsTransparent = true
+        isMovableByWindowBackground = false
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        hidesOnDeactivate = false
     }
 
     func updatePosition() {
@@ -53,17 +64,19 @@ class VolumeHUDWindow: NSPanel {
     }
 
     private func setupContent() {
-        contentViewController = hostingController
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        hostingView.frame = NSRect(x: 0, y: 0, width: Self.windowWidth, height: Self.windowHeight)
+        hostingView.autoresizingMask = [.width, .height]
 
-        hostingController.view.wantsLayer = true
-        hostingController.view.layer?.backgroundColor = NSColor.clear.cgColor
+        contentView = hostingView
     }
 
     func showWithAnimation() {
         updatePosition()
 
         alphaValue = 0.0
-        orderFront(nil)
+        orderFrontRegardless()
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2

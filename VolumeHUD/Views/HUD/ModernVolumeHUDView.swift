@@ -11,6 +11,7 @@ struct ModernVolumeHUDView: View {
     let volumeState: VolumeState
 
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
+    @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
     var body: some View {
         let content = HStack(spacing: 16) {
@@ -39,12 +40,13 @@ struct ModernVolumeHUDView: View {
         .frame(width: 280, height: 64)
 
         if liquidGlassEnable {
-            content
-                .glassEffect(.regular, in: .capsule)
+            GlassEffectContainer(cornerRadius: 22, variant: glassVariant) {
+                content
+            }
         } else {
             content
                 .background(.ultraThinMaterial)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
     }
 }
