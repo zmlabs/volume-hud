@@ -1,0 +1,116 @@
+name: Release-Private (Notarized DMG)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: macos-26
+    permissions:
+      contents: write
+    env:
+      APP_NAME: VolumeHUD
+      SCHEME: VolumeHUD
+      CONFIGURATION: Release-Private
+      ARCHIVE_PATH: ${{ github.workspace }}/build/VolumeHUD.xcarchive
+      EXPORT_PATH: ${{ github.workspace }}/build/export
+      DMG_NAME: VolumeHUD
+      DMG_PATH: ${{ github.workspace }}/build/VolumeHUD.dmg
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Import Developer ID certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.MACOS_CERT_PASSWORD }}
+
+      - name: Create ExportOptions.plist
+        run: |
+          cat > ExportOptions.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>developer-id</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${{ secrets.MACOS_TEAM_ID }}</string>
+            <key>signingCertificate</key>
+            <string>Developer ID Application</string>
+            <key>destination</key>
+            <string>export</string>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Archive (Release-Private)
+        run: |
+          xcodebuild \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "generic/platform=macOS" \
+            -archivePath "$ARCHIVE_PATH" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${{ secrets.MACOS_TEAM_ID }}" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            CODE_SIGNING_ALLOWED=YES \
+            archive
+
+      - name: Export app
+        run: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Create DMG
+        run: |
+          set -euo pipefail
+          rm -rf "${{ github.workspace }}/build/dmg"
+          mkdir -p "${{ github.workspace }}/build/dmg"
+          ditto -rsrc "${{ env.EXPORT_PATH }}/${{ env.APP_NAME }}.app" "${{ github.workspace }}/build/dmg/${{ env.APP_NAME }}.app"
+          hdiutil create -volname "${{ env.APP_NAME }}" -srcfolder "${{ github.workspace }}/build/dmg" -ov -format UDZO "${{ env.DMG_PATH }}"
+
+      - name: Create notarytool key
+        run: |
+          echo "${{ secrets.NOTARIZATION_API_KEY }}" > "AuthKey_${{ secrets.NOTARIZATION_KEY_ID }}.p8"
+
+      - name: Notarize DMG (notarytool)
+        run: |
+          set -euo pipefail
+          cmd=(xcrun notarytool submit "${{ env.DMG_PATH }}" \
+            --key "AuthKey_${{ secrets.NOTARIZATION_KEY_ID }}.p8" \
+            --key-id "${{ secrets.NOTARIZATION_KEY_ID }}" \
+            --wait)
+          if [[ -n "${{ secrets.NOTARIZATION_ISSUER_ID }}" ]]; then
+            cmd+=(--issuer "${{ secrets.NOTARIZATION_ISSUER_ID }}")
+          fi
+          "${cmd[@]}"
+
+      - name: Staple notarization
+        run: xcrun stapler staple "${{ env.DMG_PATH }}"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VolumeHUD-Release-Private-dmg
+          path: "${{ env.DMG_PATH }}"
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" "${{ env.DMG_PATH }}" --generate-notes
