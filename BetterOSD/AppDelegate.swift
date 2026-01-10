@@ -9,6 +9,7 @@ import AppKit
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let osdWindowManager = BetterOSDWindowManager()
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
 
@@ -35,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem?.button {
-            let customIcon = NSImage(systemSymbolName: "iphone.pattern.diagonalline.on.rectangle.portrait.dashed", accessibilityDescription: "Better OSD")
+            let customIcon = NSImage(systemSymbolName: "rectangle.center.inset.filled", accessibilityDescription: "Better OSD")
             customIcon?.size = NSSize(width: 16, height: 16)
             button.image = customIcon
             button.target = self
@@ -65,10 +66,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if defaults.object(forKey: AppStorageKeys.accessibilityPrompted) == nil {
             defaults.set(true, forKey: AppStorageKeys.accessibilityPrompted)
-            print(MediaKeyMonitor.shared.hasAccessibilityPermission())
             guard !MediaKeyMonitor.shared.hasAccessibilityPermission() else { return }
 
+            NSApp.activate(ignoringOtherApps: true)
             MediaKeyMonitor.shared.requestAccessibilityPermission()
+            MediaKeyMonitor.shared.startAccessibilityPolling()
         }
     }
 
@@ -108,6 +110,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_: Notification) {
+        osdWindowManager.stop()
         MediaKeyMonitor.shared.stop()
+        VolumeMonitor.shared.stop()
     }
 }

@@ -6,7 +6,7 @@
 //
 
 import AppKit
-@preconcurrency import Combine
+import Combine
 import ServiceManagement
 import SwiftUI
 
@@ -18,9 +18,8 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
     @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
-    @State private var volumeState: VolumeState = VolumeMonitor.shared.currentVolumeState
-    @State private var cancellable: AnyCancellable?
-    @State private var accessibilityGranted = MediaKeyMonitor.shared.hasAccessibilityPermission()
+    @State private var volumeState: VolumeState = .init()
+    @State private var accessibilityGranted = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -33,6 +32,7 @@ struct SettingsView: View {
             if !accessibilityGranted {
                 AccessibilityPermissionBanner {
                     MediaKeyMonitor.shared.requestAccessibilityPermission()
+                    MediaKeyMonitor.shared.startAccessibilityPolling()
                     refreshAccessibilityStatus()
                 }
                 .padding(.horizontal, 24)
@@ -202,19 +202,14 @@ struct SettingsView: View {
         .frame(width: 580)
         .onAppear {
             launchAtLogin = SMAppService.mainApp.status == .enabled
+            volumeState = VolumeMonitor.shared.currentVolumeState
             refreshAccessibilityStatus()
-
-            cancellable = VolumeMonitor.shared.volumeChangePublisher
-                .receive(on: RunLoop.main)
-                .sink {
-                    volumeState = $0
-                }
+        }
+        .onReceive(VolumeMonitor.shared.volumeChangePublisher.receive(on: RunLoop.main)) {
+            volumeState = $0
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
-        }
-        .onDisappear {
-            cancellable?.cancel()
         }
     }
 
@@ -235,7 +230,7 @@ struct SettingsView: View {
         accessibilityGranted = trusted
 
         if trusted {
-            MediaKeyMonitor.shared.start()
+            _ = MediaKeyMonitor.shared.start()
         }
     }
 

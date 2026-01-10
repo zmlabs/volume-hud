@@ -7,7 +7,7 @@
 
 import AppKit
 import ApplicationServices
-@preconcurrency import Combine
+import Combine
 
 final class MediaKeyMonitor {
     enum MediaKey: Int {
@@ -15,14 +15,18 @@ final class MediaKeyMonitor {
         case soundDown = 1
         case brightnessUp = 2
         case brightnessDown = 3
+        case mute = 7
     }
 
     static let shared = MediaKeyMonitor()
 
     let mediaKeyPublisher = PassthroughSubject<MediaKey, Never>()
 
-    private var globalMonitor: Any?
-    private var localMonitor: Any?
+    private var eventTap: CFMachPort?
+    private var eventTapSource: CFRunLoopSource?
+    private var eventTapRunLoop: CFRunLoop?
+    private let volumeKeyController = VolumeKeyController()
+    private var accessibilityPollTask: Task<Void, Never>?
 
     private init() {}
 
@@ -30,74 +34,148 @@ final class MediaKeyMonitor {
         AXIsProcessTrusted()
     }
 
-    @MainActor
     func requestAccessibilityPermission() {
         guard !hasAccessibilityPermission() else { return }
-
-        NSApp.activate(ignoringOtherApps: true)
-
-        let alert = NSAlert()
-        alert.messageText = "Allow Accessibility Access"
-        alert.informativeText = "BetterOSD needs this to listen for media keys. Open System Settings and enable BetterOSD."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Open Settings")
-        alert.addButton(withTitle: "Not Now")
-
-        let response = alert.runModal()
-        guard response == .alertFirstButtonReturn else { return }
-
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
-
         let promptKey = "AXTrustedCheckOptionPrompt" as CFString
         let options = [promptKey: true as CFBoolean] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
+    func startAccessibilityPolling(interval: TimeInterval = 1.0, maxAttempts: Int = 60) {
+        guard maxAttempts > 0 else { return }
+
+        accessibilityPollTask?.cancel()
+        accessibilityPollTask = Task { [weak self] in
+            guard let self else { return }
+
+            for _ in 0 ..< maxAttempts {
+                if hasAccessibilityPermission() {
+                    _ = start(promptAccessibility: false)
+                    break
+                }
+
+                if Task.isCancelled { break }
+                try? await Task.sleep(for: .seconds(interval))
+            }
+        }
+    }
+
     @discardableResult
-    func start() -> Bool {
-        if globalMonitor != nil || localMonitor != nil {
+    func start(promptAccessibility: Bool = false) -> Bool {
+        if eventTap != nil {
             return true
         }
 
         let promptKey = "AXTrustedCheckOptionPrompt" as CFString
-        let options = [promptKey: true as CFBoolean] as CFDictionary
+        let options = [promptKey: promptAccessibility as CFBoolean] as CFDictionary
         guard AXIsProcessTrustedWithOptions(options) else { return false }
 
-        let mask: NSEvent.EventTypeMask = [.systemDefined]
+        let mask = CGEventMask(1 << UInt64(NSEvent.EventType.systemDefined.rawValue))
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
 
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] event in
-            self?.handle(event)
+        guard let tap = CGEvent.tapCreate(
+            tap: .cghidEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: mask,
+            callback: Self.eventTapCallback,
+            userInfo: refcon
+        ) else {
+            return false
         }
 
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
-            self?.handle(event)
-            return event
-        }
+        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        let runLoop = CFRunLoopGetMain()
+        CFRunLoopAddSource(runLoop, source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+
+        eventTap = tap
+        eventTapSource = source
+        eventTapRunLoop = runLoop
 
         return true
     }
 
     func stop() {
-        if let m = globalMonitor { NSEvent.removeMonitor(m) }
-        if let m = localMonitor { NSEvent.removeMonitor(m) }
-        globalMonitor = nil
-        localMonitor = nil
+        accessibilityPollTask?.cancel()
+        let source = eventTapSource
+        let runLoop = eventTapRunLoop
+        let tap = eventTap
+        eventTap = nil
+        eventTapSource = nil
+        eventTapRunLoop = nil
+
+        if let source, let runLoop {
+            CFRunLoopRemoveSource(runLoop, source, .commonModes)
+            CFRunLoopSourceInvalidate(source)
+        }
+        if let tap {
+            CFMachPortInvalidate(tap)
+        }
     }
 
-    private func handle(_ event: NSEvent) {
-        guard event.type == .systemDefined, event.subtype.rawValue == 8 else { return }
+    private func enableEventTap() {
+        guard let tap = eventTap else { return }
+        CGEvent.tapEnable(tap: tap, enable: true)
+    }
 
-        let data1 = event.data1
+    private static let eventTapCallback: CGEventTapCallBack = { _, type, event, refcon in
+        guard let refcon else {
+            return Unmanaged.passRetained(event)
+        }
+
+        let monitor = Unmanaged<MediaKeyMonitor>.fromOpaque(refcon).takeUnretainedValue()
+
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            monitor.enableEventTap()
+            return Unmanaged.passRetained(event)
+        }
+
+        return monitor.handle(event)
+    }
+
+    private func handle(_ event: CGEvent) -> Unmanaged<CGEvent>? {
+        guard let nsEvent = NSEvent(cgEvent: event) else {
+            return Unmanaged.passRetained(event)
+        }
+
+        guard nsEvent.type == .systemDefined, nsEvent.subtype.rawValue == 8 else {
+            return Unmanaged.passRetained(event)
+        }
+
+        let data1 = nsEvent.data1
         let keyCode = Int((data1 & 0xFFFF_0000) >> 16)
         let flags = Int(data1 & 0x0000_FFFF)
 
         let keyState = (flags & 0xFF00) >> 8
         let isDown = (keyState == 0x0A)
-        guard isDown else { return }
+        guard isDown else { return Unmanaged.passRetained(event) }
 
-        guard let mk = MediaKey(rawValue: keyCode) else { return }
-        mediaKeyPublisher.send(mk)
+        guard let mk = MediaKey(rawValue: keyCode) else {
+            return Unmanaged.passRetained(event)
+        }
+
+        let modifiers = nsEvent.modifierFlags
+        let handlingResult = handleMediaKey(mk, modifiers: modifiers)
+
+        switch handlingResult {
+        case .passThrough:
+            return Unmanaged.passRetained(event)
+        case let .consumed(didChange):
+            if !didChange {
+                mediaKeyPublisher.send(mk)
+            }
+            return nil
+        }
+    }
+
+    private func handleMediaKey(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
+        switch key {
+        case .soundUp, .soundDown, .mute:
+            let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
+            return volumeKeyController.handle(key, fineStep: fineStep)
+        case .brightnessUp, .brightnessDown:
+            return .passThrough
+        }
     }
 }

@@ -78,7 +78,7 @@ class BetterOSDWindow: NSPanel {
         orderFrontRegardless()
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
+            context.duration = 0.12
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             self.animator().alphaValue = 1.0
         }
@@ -86,7 +86,7 @@ class BetterOSDWindow: NSPanel {
 
     func hideWithAnimation() {
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
+            context.duration = 0.18
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             self.animator().alphaValue = 0.0
         } completionHandler: {

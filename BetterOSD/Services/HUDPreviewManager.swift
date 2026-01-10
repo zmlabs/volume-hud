@@ -5,10 +5,10 @@
 //  Created by yu on 2025/12/27.
 //
 
-@preconcurrency import Combine
+import Combine
 import Foundation
 
-class HUDPreviewManager: ObservableObject {
+final class HUDPreviewManager: ObservableObject {
     static let shared = HUDPreviewManager()
 
     @Published var isPreviewActive: Bool = false

@@ -6,12 +6,13 @@
 //
 
 import AppKit
-@preconcurrency import Combine
+import Combine
 import Foundation
 
-class BetterOSDWindowManager {
+final class BetterOSDWindowManager {
     private let volumeMonitor = VolumeMonitor.shared
     private let mediaKeyMonitor = MediaKeyMonitor.shared
+    private let previewManager = HUDPreviewManager.shared
 
     private var hudWindow: BetterOSDWindow?
     private var cancellables = Set<AnyCancellable>()
@@ -34,21 +35,22 @@ class BetterOSDWindowManager {
         // Volume changes or volume key presses
         Publishers.Merge(volumeChanges, volumeKeyPresses)
             .throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: false)
-            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                self?.showHUD()
+                Task { [weak self] in
+                    self?.showHUD()
+                }
             }
             .store(in: &cancellables)
 
         // Preview state changes
-        let previewManager = HUDPreviewManager.shared
-
         previewManager.$isPreviewActive
             .sink { [weak self] isActive in
-                if isActive {
-                    self?.showHUD(autoHide: false)
-                } else {
-                    self?.resetHideTask()
+                Task { [weak self] in
+                    if isActive {
+                        self?.showHUD(autoHide: false)
+                    } else {
+                        self?.resetHideTask()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -56,7 +58,9 @@ class BetterOSDWindowManager {
         previewManager.$bottomOffset
             .removeDuplicates()
             .sink { [weak self] _ in
-                self?.hudWindow?.updatePosition()
+                Task { [weak self] in
+                    self?.hudWindow?.updatePosition()
+                }
             }
             .store(in: &cancellables)
     }
@@ -78,7 +82,7 @@ class BetterOSDWindowManager {
 
     private func resetHideTask() {
         hideTask?.cancel()
-        hideTask = Task { @MainActor [weak self] in
+        hideTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2.5))
 
             if let self, !Task.isCancelled {
@@ -93,12 +97,13 @@ class BetterOSDWindowManager {
         window.hideWithAnimation()
     }
 
+    func stop() {
+        hideTask?.cancel()
+        hudWindow?.orderOut(nil)
+        hudWindow = nil
+    }
+
     deinit {
         hideTask?.cancel()
-        if let window = hudWindow {
-            Task { @MainActor in
-                window.orderOut(nil)
-            }
-        }
     }
 }

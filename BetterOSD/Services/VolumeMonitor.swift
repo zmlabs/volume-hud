@@ -5,7 +5,7 @@
 //  Created by yu on 2025/9/23.
 //
 
-@preconcurrency import Combine
+import Combine
 import CoreAudio
 import Foundation
 
@@ -31,13 +31,13 @@ final class VolumeMonitor {
 
     private let mainVolumeAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyVolumeScalar,
-        mScope: kAudioDevicePropertyScopeOutput,
+        mScope: kAudioObjectPropertyScopeOutput,
         mElement: kAudioObjectPropertyElementMain
     )
 
     private let channel1VolumeAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyVolumeScalar,
-        mScope: kAudioDevicePropertyScopeOutput,
+        mScope: kAudioObjectPropertyScopeOutput,
         mElement: 1
     )
 
@@ -54,10 +54,7 @@ final class VolumeMonitor {
     }
 
     deinit {
-        MainActor.assumeIsolated {
-            debounceTask?.cancel()
-            removeAllListeners()
-        }
+        debounceTask?.cancel()
     }
 
     // MARK: - Listener Setup
@@ -129,6 +126,11 @@ final class VolumeMonitor {
         removeVolumeListeners()
     }
 
+    func stop() {
+        debounceTask?.cancel()
+        removeAllListeners()
+    }
+
     // MARK: - State Updates
 
     func updateOutputDevice() {
@@ -149,7 +151,7 @@ final class VolumeMonitor {
 
     func scheduleStateRefresh() {
         debounceTask?.cancel()
-        debounceTask = Task { @MainActor [weak self] in
+        debounceTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Self.debounceInterval))
             self?.refreshState()
         }

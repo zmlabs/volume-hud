@@ -5,7 +5,7 @@
 //  Created by yu on 2025/9/23.
 //
 
-@preconcurrency import Combine
+import Combine
 import SwiftUI
 
 /// A SwiftUI view that automatically switches between different HUD styles based on user settings
@@ -13,11 +13,6 @@ struct BetterOSDFactoryView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
 
     @State private var volumeState: VolumeState = .init()
-    @State private var cancellable: AnyCancellable?
-    init() {
-        let initialVolumeState = VolumeMonitor.shared.currentVolumeState
-        _volumeState = State(initialValue: initialVolumeState)
-    }
 
     var body: some View {
         ZStack {
@@ -31,14 +26,10 @@ struct BetterOSDFactoryView: View {
         .frame(width: HUDLayout.contentSize.width, height: HUDLayout.contentSize.height)
         .padding(HUDLayout.windowInset)
         .onAppear {
-            cancellable = VolumeMonitor.shared.volumeChangePublisher
-                .receive(on: RunLoop.main)
-                .sink {
-                    volumeState = $0
-                }
+            volumeState = VolumeMonitor.shared.currentVolumeState
         }
-        .onDisappear {
-            cancellable?.cancel()
+        .onReceive(VolumeMonitor.shared.volumeChangePublisher.receive(on: RunLoop.main)) {
+            volumeState = $0
         }
     }
 }
