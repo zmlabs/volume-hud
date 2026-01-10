@@ -94,52 +94,6 @@
         }
       }
     },
-    "Accessibility Permission Needed" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Barrierefreiheitsberechtigung erforderlich"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se necesita permiso de accesibilidad"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisation d'accessibilité requise"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アクセシビリティ権限が必要です"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "접근성 권한 필요"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要辅助功能权限"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要輔助功能權限"
-          }
-        }
-      }
-    },
     "Appearance" : {
       "comment" : "Appearance",
       "localizations" : {
@@ -368,52 +322,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "經典"
-          }
-        }
-      }
-    },
-    "Enable access so BetterOSD can listen for media keys." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gewähren Sie Zugriff, damit BetterOSD Medientasten abhören kann."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Habilite el acceso para que BetterOSD pueda escuchar las teclas multimedia."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez l'accès pour que BetterOSD puisse écouter les touches multimédia."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BetterOSDがメディアキーをリッスンできるようにアクセスを有効にしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BetterOSD가 미디어 키를 수신할 수 있도록 액세스를 허용하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用访问权限以便 BetterOSD 监听媒体按键。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "啟用訪問權限以便 BetterOSD 監聽媒體按鍵。"
           }
         }
       }
@@ -652,6 +560,7 @@
       }
     },
     "Open Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

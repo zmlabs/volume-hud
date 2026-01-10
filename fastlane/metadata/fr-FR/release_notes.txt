@@ -1,7 +1,5 @@
 Nouveautés de cette version :
 
-• Prise en charge des touches multimédias : Contrôlez le volume directement avec les touches multimédias de votre clavier.
-
 • Précision améliorée : Surveillance et affichage du volume plus précis.
 
 • Corrections de bugs et améliorations des performances.

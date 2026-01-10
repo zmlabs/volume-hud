@@ -32,5 +32,4 @@ enum AppStorageKeys {
     static let liquidGlassEnable = "liquidGlassEnable"
     static let bottomOffset = "bottomOffset"
     static let glassVariant = "glassVariant"
-    static let accessibilityPrompted = "accessibilityPrompted"
 }

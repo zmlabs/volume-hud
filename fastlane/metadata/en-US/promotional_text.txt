@@ -1,1 +1,1 @@
-Beautiful volume overlay with media key support and improved accuracy.
+Beautiful volume overlay with improved accuracy.

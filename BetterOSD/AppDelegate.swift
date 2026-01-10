@@ -19,8 +19,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if currentShowInMenuBar {
             showStatusItem()
         }
-
-        promptAccessibilityIfNeeded()
     }
 
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
@@ -61,18 +59,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = menu
     }
 
-    private func promptAccessibilityIfNeeded() {
-        let defaults = UserDefaults.standard
-
-        if defaults.object(forKey: AppStorageKeys.accessibilityPrompted) == nil {
-            defaults.set(true, forKey: AppStorageKeys.accessibilityPrompted)
-            print(MediaKeyMonitor.shared.hasAccessibilityPermission())
-            guard !MediaKeyMonitor.shared.hasAccessibilityPermission() else { return }
-
-            MediaKeyMonitor.shared.requestAccessibilityPermission()
-        }
-    }
-
     private func hideStatusItem() {
         if let item = statusItem {
             NSStatusBar.system.removeStatusItem(item)
@@ -106,9 +92,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             hideStatusItem()
         }
-    }
-
-    func applicationWillTerminate(_: Notification) {
-        MediaKeyMonitor.shared.stop()
     }
 }

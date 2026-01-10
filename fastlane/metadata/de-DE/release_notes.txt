@@ -1,7 +1,5 @@
 Was ist neu in dieser Version:
 
-• Medienunterstützung: Steuern Sie die Lautstärke direkt mit den Medientasten Ihrer Tastatur.
-
 • Verbesserte Genauigkeit: Präzisere Lautstärkeüberwachung und -anzeige.
 
 • Fehlerbehebungen und Leistungsverbesserungen.

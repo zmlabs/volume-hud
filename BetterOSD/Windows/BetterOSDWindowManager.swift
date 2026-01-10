@@ -11,7 +11,6 @@ import Foundation
 
 class BetterOSDWindowManager {
     private let volumeMonitor = VolumeMonitor.shared
-    private let mediaKeyMonitor = MediaKeyMonitor.shared
 
     private var hudWindow: BetterOSDWindow?
     private var cancellables = Set<AnyCancellable>()
@@ -22,17 +21,8 @@ class BetterOSDWindowManager {
     }
 
     private func setupObservers() {
-        mediaKeyMonitor.start()
-
-        let volumeChanges = volumeMonitor.volumeChangePublisher
-            .map { _ in () }
-
-        let volumeKeyPresses = mediaKeyMonitor.mediaKeyPublisher
-            .filter { $0 == .soundUp || $0 == .soundDown }
-            .map { _ in () }
-
-        // Volume changes or volume key presses
-        Publishers.Merge(volumeChanges, volumeKeyPresses)
+        // Volume changes
+        volumeMonitor.volumeChangePublisher
             .throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: false)
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
