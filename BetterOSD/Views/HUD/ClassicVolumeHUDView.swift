@@ -15,7 +15,6 @@ struct ClassicVolumeHUDView: View {
 
     var body: some View {
         let content = VStack(spacing: 0) {
-            // Upper section: Volume icon
             VStack {
                 Image(systemName: volumeState.iconName)
                     .font(.system(size: 72, weight: .regular))
@@ -26,7 +25,6 @@ struct ClassicVolumeHUDView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Lower section: Volume progress bar
             ClassicVolumeProgressBar(
                 volumeState: volumeState
             )
@@ -50,10 +48,9 @@ struct ClassicVolumeProgressBar: View {
     let volumeState: VolumeState
 
     private static let segmentCount = 16
-    private static let segmentSpacing: CGFloat = 1
 
     var body: some View {
-        HStack(spacing: Self.segmentSpacing) {
+        HStack(spacing: 1) {
             ForEach(0 ..< Self.segmentCount, id: \.self) { index in
                 VolumeSegment(
                     fillRatio: fillRatio(for: index),
@@ -73,7 +70,7 @@ struct ClassicVolumeProgressBar: View {
 }
 
 private struct VolumeSegment: View {
-    let fillRatio: CGFloat // 0.0 to 1.0
+    let fillRatio: CGFloat
     let isActive: Bool
 
     private static let size: CGFloat = 8

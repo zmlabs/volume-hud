@@ -14,11 +14,7 @@ enum MediaKeyHandlingResult {
 }
 
 final class VolumeKeyController {
-    private static let coarseStep: Float = 1.0 / 16.0
-    private static let fineStep: Float = 1.0 / 64.0
-    private static let fallbackUnmuteVolume: Float = 0.25
-
-    private let audioController = SystemAudioController()
+    private let audioController = SystemAudioController.shared
     private var lastNonZeroVolumeByDevice: [AudioDeviceID: Float] = [:]
 
     func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
@@ -84,7 +80,7 @@ final class VolumeKeyController {
         didChange = didChange || (muteSuccess && targetMute != isMuted)
 
         if muteSuccess, !targetMute, currentVolume <= 0 {
-            let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? Self.fallbackUnmuteVolume
+            let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? 0.25
             let volumeSuccess = audioController.setVolume(restoreVolume, deviceID: deviceID, address: volumeAddress)
             handled = handled || volumeSuccess
             didChange = didChange || (volumeSuccess && restoreVolume != currentVolume)
@@ -105,7 +101,7 @@ final class VolumeKeyController {
         isMuted: Bool,
         fineStep: Bool
     ) -> MediaKeyHandlingResult {
-        let step = fineStep ? Self.fineStep : Self.coarseStep
+        let step = fineStep ? VolumeCalculation.fineStep : VolumeCalculation.coarseStep
         let delta = (key == .soundUp) ? step : -step
         let targetVolume = max(0, min(1, currentVolume + delta))
 
@@ -146,7 +142,7 @@ final class VolumeKeyController {
             return success ? .consumed(didChange: true) : .passThrough
         }
 
-        let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? Self.fallbackUnmuteVolume
+        let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? 0.25
         let success = audioController.setVolume(restoreVolume, deviceID: deviceID, address: volumeAddress)
         return success ? .consumed(didChange: restoreVolume != currentVolume) : .passThrough
     }
@@ -160,88 +156,5 @@ extension MediaKeyMonitor.MediaKey {
         case .brightnessUp, .brightnessDown:
             false
         }
-    }
-}
-
-private struct SystemAudioController {
-    func defaultOutputDeviceID() -> AudioDeviceID? {
-        var deviceID = AudioDeviceID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &address,
-            0,
-            nil,
-            &size,
-            &deviceID
-        )
-
-        guard status == noErr, deviceID != kAudioObjectUnknown else { return nil }
-        return deviceID
-    }
-
-    func volumePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress? {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyVolumeScalar,
-            mScope: kAudioObjectPropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        if AudioObjectHasProperty(deviceID, &address) {
-            return address
-        }
-
-        address.mElement = 1
-        return AudioObjectHasProperty(deviceID, &address) ? address : nil
-    }
-
-    func mutePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress? {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyMute,
-            mScope: kAudioObjectPropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        return AudioObjectHasProperty(deviceID, &address) ? address : nil
-    }
-
-    func getVolume(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Float? {
-        var volume: Float32 = 0
-        var size = UInt32(MemoryLayout<Float32>.size)
-        var mutableAddress = address
-
-        let status = AudioObjectGetPropertyData(deviceID, &mutableAddress, 0, nil, &size, &volume)
-        return status == noErr ? Float(volume) : nil
-    }
-
-    func setVolume(_ volume: Float, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
-        var mutableAddress = address
-        var clampedVolume = Float32(max(0, min(1, volume)))
-        let size = UInt32(MemoryLayout<Float32>.size)
-
-        let status = AudioObjectSetPropertyData(deviceID, &mutableAddress, 0, nil, size, &clampedVolume)
-        return status == noErr
-    }
-
-    func getMute(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool? {
-        var muted: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        var mutableAddress = address
-
-        let status = AudioObjectGetPropertyData(deviceID, &mutableAddress, 0, nil, &size, &muted)
-        return status == noErr ? (muted != 0) : nil
-    }
-
-    func setMute(_ muted: Bool, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
-        var mutableAddress = address
-        var value: UInt32 = muted ? 1 : 0
-        let size = UInt32(MemoryLayout<UInt32>.size)
-
-        let status = AudioObjectSetPropertyData(deviceID, &mutableAddress, 0, nil, size, &value)
-        return status == noErr
     }
 }

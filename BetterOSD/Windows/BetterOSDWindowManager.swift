@@ -42,7 +42,6 @@ final class BetterOSDWindowManager {
             }
             .store(in: &cancellables)
 
-        // Preview state changes
         previewManager.$isPreviewActive
             .sink { [weak self] isActive in
                 Task { [weak self] in

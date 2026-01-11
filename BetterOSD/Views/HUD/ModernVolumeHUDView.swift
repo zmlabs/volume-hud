@@ -15,14 +15,12 @@ struct ModernVolumeHUDView: View {
 
     var body: some View {
         let content = HStack(spacing: 16) {
-            // Volume icon
             Image(systemName: volumeState.iconName)
                 .font(.system(size: 24, weight: .medium))
                 .frame(width: 28)
                 .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                 .contentTransition(.symbolEffect(.replace))
 
-            // Progress bar with ticks
             VStack(spacing: 4) {
                 ModernVolumeProgressBar(
                     volumeState: volumeState
@@ -108,7 +106,6 @@ struct ModernVolumeProgressTicks: View {
     }
 
     private func tickHeight(for index: Int) -> CGFloat {
-        // Every 4th tick is taller (at positions 0, 4, 8, 12, 16)
         index % 4 == 0 ? 6 : 4
     }
 }

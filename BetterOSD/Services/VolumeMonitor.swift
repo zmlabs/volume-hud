@@ -9,20 +9,19 @@ import Combine
 import CoreAudio
 import Foundation
 
-/// Monitors system volume changes using Core Audio
 final class VolumeMonitor {
     static let shared = VolumeMonitor()
 
     let volumeChangePublisher = PassthroughSubject<VolumeState, Never>()
     private(set) var currentVolumeState = VolumeState()
 
+    private let audioController = SystemAudioController.shared
+    private static let debounceInterval: TimeInterval = 0.05
     private var outputDeviceID: AudioDeviceID = kAudioObjectUnknown
     private var volumePropertyAddress: AudioObjectPropertyAddress?
+    private var mutePropertyAddress: AudioObjectPropertyAddress?
     private var debounceTask: Task<Void, Never>?
 
-    private static let debounceInterval: TimeInterval = 0.05
-
-    // Property addresses
     private var defaultDeviceAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwarePropertyDefaultOutputDevice,
         mScope: kAudioObjectPropertyScopeGlobal,
@@ -43,7 +42,7 @@ final class VolumeMonitor {
 
     private var muteAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyMute,
-        mScope: kAudioDevicePropertyScopeOutput,
+        mScope: kAudioObjectPropertyScopeOutput,
         mElement: kAudioObjectPropertyElementMain
     )
 
@@ -68,37 +67,6 @@ final class VolumeMonitor {
         )
     }
 
-    private func setupVolumeListeners() {
-        guard outputDeviceID != kAudioObjectUnknown else { return }
-
-        // Find available volume property
-        var address = mainVolumeAddress
-        if AudioObjectHasProperty(outputDeviceID, &address) {
-            volumePropertyAddress = mainVolumeAddress
-        } else {
-            address = channel1VolumeAddress
-            if AudioObjectHasProperty(outputDeviceID, &address) {
-                volumePropertyAddress = channel1VolumeAddress
-            }
-        }
-
-        // Register volume listener
-        if var volAddr = volumePropertyAddress {
-            AudioObjectAddPropertyListener(
-                outputDeviceID, &volAddr, Self.propertyCallback,
-                Unmanaged.passUnretained(self).toOpaque()
-            )
-        }
-
-        // Register mute listener
-        if AudioObjectHasProperty(outputDeviceID, &muteAddress) {
-            AudioObjectAddPropertyListener(
-                outputDeviceID, &muteAddress, Self.propertyCallback,
-                Unmanaged.passUnretained(self).toOpaque()
-            )
-        }
-    }
-
     private func removeVolumeListeners() {
         guard outputDeviceID != kAudioObjectUnknown else { return }
 
@@ -110,10 +78,13 @@ final class VolumeMonitor {
             volumePropertyAddress = nil
         }
 
-        AudioObjectRemovePropertyListener(
-            outputDeviceID, &muteAddress, Self.propertyCallback,
-            Unmanaged.passUnretained(self).toOpaque()
-        )
+        if var muteAddr = mutePropertyAddress {
+            AudioObjectRemovePropertyListener(
+                outputDeviceID, &muteAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+            mutePropertyAddress = nil
+        }
     }
 
     private func removeAllListeners() {
@@ -134,19 +105,31 @@ final class VolumeMonitor {
     // MARK: - State Updates
 
     func updateOutputDevice() {
-        var deviceID: AudioDeviceID = kAudioObjectUnknown
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-
-        guard AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &defaultDeviceAddress, 0, nil, &size, &deviceID
-        ) == noErr, deviceID != kAudioObjectUnknown, deviceID != outputDeviceID else {
+        guard let deviceID = audioController.defaultOutputDeviceID(),
+              deviceID != kAudioObjectUnknown, deviceID != outputDeviceID
+        else {
             return
         }
 
         removeVolumeListeners()
         outputDeviceID = deviceID
-        setupVolumeListeners()
+
+        volumePropertyAddress = audioController.volumePropertyAddress(for: deviceID)
+        mutePropertyAddress = audioController.mutePropertyAddress(for: deviceID)
+
+        if var volAddr = volumePropertyAddress {
+            AudioObjectAddPropertyListener(
+                outputDeviceID, &volAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
+
+        if var muteAddr = mutePropertyAddress {
+            AudioObjectAddPropertyListener(
+                outputDeviceID, &muteAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
     }
 
     func scheduleStateRefresh() {
@@ -177,27 +160,13 @@ final class VolumeMonitor {
     // MARK: - Property Getters
 
     private func getVolume() -> Float {
-        guard var address = volumePropertyAddress else { return 0 }
-
-        var volume: Float32 = 0
-        var size = UInt32(MemoryLayout<Float32>.size)
-
-        return AudioObjectGetPropertyData(outputDeviceID, &address, 0, nil, &size, &volume) == noErr
-            ? volume : 0
+        guard let address = volumePropertyAddress else { return 0 }
+        return audioController.getVolume(deviceID: outputDeviceID, address: address) ?? 0
     }
 
     private func getMuteState() -> Bool {
-        guard outputDeviceID != kAudioObjectUnknown,
-              AudioObjectHasProperty(outputDeviceID, &muteAddress)
-        else {
-            return false
-        }
-
-        var muted: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-
-        return AudioObjectGetPropertyData(outputDeviceID, &muteAddress, 0, nil, &size, &muted) == noErr
-            && muted != 0
+        guard let address = mutePropertyAddress else { return false }
+        return audioController.getMute(deviceID: outputDeviceID, address: address) ?? false
     }
 
     // MARK: - Callback
