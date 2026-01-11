@@ -7,12 +7,11 @@
 
 import AppKit
 import Combine
-import ServiceManagement
+import LaunchAtLogin
 import SwiftUI
 
 struct SettingsView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
-    @AppStorage(AppStorageKeys.launchAtLogin) private var launchAtLogin: Bool = false
     @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
     @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
@@ -71,13 +70,10 @@ struct SettingsView: View {
 
                             Spacer()
 
-                            Toggle("Launch at Login", isOn: $launchAtLogin)
+                            LaunchAtLogin.Toggle()
                                 .toggleStyle(.switch)
                                 .labelsHidden()
                                 .controlSize(.small)
-                                .onChange(of: launchAtLogin) { _, newValue in
-                                    setLaunchAtLogin(enabled: newValue)
-                                }
                         }
                         HStack {
                             Text("Show in Menu Bar")
@@ -201,7 +197,6 @@ struct SettingsView: View {
         }
         .frame(width: 580)
         .onAppear {
-            launchAtLogin = SMAppService.mainApp.status == .enabled
             volumeState = VolumeMonitor.shared.currentVolumeState
             refreshAccessibilityStatus()
         }
@@ -210,18 +205,6 @@ struct SettingsView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
-        }
-    }
-
-    private func setLaunchAtLogin(enabled: Bool) {
-        do {
-            if enabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-        } catch {
-            print("Failed to \(enabled ? "enable" : "disable") launch at login: \(error)")
         }
     }
 

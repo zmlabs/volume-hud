@@ -27,7 +27,6 @@ enum HUDStyle: String, CaseIterable, Identifiable {
 /// AppStorage keys for user preferences
 enum AppStorageKeys {
     static let hudStyle = "hudStyle"
-    static let launchAtLogin = "launchAtLogin"
     static let showInMenuBar = "showInMenuBar"
     static let liquidGlassEnable = "liquidGlassEnable"
     static let bottomOffset = "bottomOffset"

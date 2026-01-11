@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AB43BAD82F13A63300E71833 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = AB43BAD72F13A63300E71833 /* LaunchAtLogin */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9A7AC0DF2E826CD000E45EAD /* BetterOSD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterOSD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB43BAD82F13A63300E71833 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = BetterOSD;
 			packageProductDependencies = (
+				AB43BAD72F13A63300E71833 /* LaunchAtLogin */,
 			);
 			productName = BetterOSD;
 			productReference = 9A7AC0DF2E826CD000E45EAD /* BetterOSD.app */;
@@ -101,6 +107,9 @@
 			);
 			mainGroup = 9A7AC0D62E826CD000E45EAD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AB43BAD62F13A63300E71833 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9A7AC0E02E826CD000E45EAD /* Products */;
 			projectDirPath = "";
@@ -357,6 +366,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AB43BAD62F13A63300E71833 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				kind = exactVersion;
+				version = 1.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AB43BAD72F13A63300E71833 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB43BAD62F13A63300E71833 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9A7AC0D72E826CD000E45EAD /* Project object */;
 }
