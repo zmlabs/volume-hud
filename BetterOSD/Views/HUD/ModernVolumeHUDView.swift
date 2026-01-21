@@ -62,7 +62,7 @@ struct ModernVolumeProgressBar: View {
                 // Progress fill
                 if !volumeState.isMuted, volumeState.volume > 0 {
                     Capsule()
-                        .fill(.primary)
+                        .fill(Color(.secondaryLabelColor))
                         .frame(width: geometry.size.width * calculateVisualProgress())
                 }
             }
