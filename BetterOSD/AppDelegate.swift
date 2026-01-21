@@ -6,10 +6,16 @@
 //
 
 import AppKit
+import Sparkle
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let osdWindowManager = BetterOSDWindowManager()
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
 
@@ -51,6 +57,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         settingsItem.target = self
         menu.addItem(settingsItem)
+
+        let updateItem = NSMenuItem(
+            title: NSLocalizedString("Check for Updates", comment: ""),
+            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+            keyEquivalent: ""
+        )
+        updateItem.target = updaterController
+        menu.addItem(updateItem)
 
         let quitItem = NSMenuItem(title:
             NSLocalizedString("Quit", comment: ""),
