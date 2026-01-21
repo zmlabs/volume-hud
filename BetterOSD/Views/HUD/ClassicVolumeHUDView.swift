@@ -82,7 +82,7 @@ private struct VolumeSegment: View {
             .overlay(alignment: .leading) {
                 if fillRatio > 0, isActive {
                     Rectangle()
-                        .fill(.primary)
+                        .fill(Color(.secondaryLabelColor))
                         .frame(width: Self.size * fillRatio)
                         .clipped()
                 }
