@@ -28,6 +28,18 @@ final class VolumeMonitor {
         mElement: kAudioObjectPropertyElementMain
     )
 
+    private var streamConfigurationAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyStreamConfiguration,
+        mScope: kAudioObjectPropertyScopeOutput,
+        mElement: kAudioObjectPropertyElementMain
+    )
+
+    private var deviceAliveAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyDeviceIsAlive,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain
+    )
+
     private let mainVolumeAddress = AudioObjectPropertyAddress(
         mSelector: kAudioDevicePropertyVolumeScalar,
         mScope: kAudioObjectPropertyScopeOutput,
@@ -67,7 +79,7 @@ final class VolumeMonitor {
         )
     }
 
-    private func removeVolumeListeners() {
+    private func removeDeviceListeners() {
         guard outputDeviceID != kAudioObjectUnknown else { return }
 
         if var volAddr = volumePropertyAddress {
@@ -85,6 +97,18 @@ final class VolumeMonitor {
             )
             mutePropertyAddress = nil
         }
+
+        var configAddr = streamConfigurationAddress
+        AudioObjectRemovePropertyListener(
+            outputDeviceID, &configAddr, Self.propertyCallback,
+            Unmanaged.passUnretained(self).toOpaque()
+        )
+
+        var aliveAddr = deviceAliveAddress
+        AudioObjectRemovePropertyListener(
+            outputDeviceID, &aliveAddr, Self.propertyCallback,
+            Unmanaged.passUnretained(self).toOpaque()
+        )
     }
 
     private func removeAllListeners() {
@@ -94,7 +118,7 @@ final class VolumeMonitor {
             Self.propertyCallback,
             Unmanaged.passUnretained(self).toOpaque()
         )
-        removeVolumeListeners()
+        removeDeviceListeners()
     }
 
     func stop() {
@@ -104,29 +128,46 @@ final class VolumeMonitor {
 
     // MARK: - State Updates
 
-    func updateOutputDevice() {
+    func updateOutputDevice(force: Bool = false) {
         guard let deviceID = audioController.defaultOutputDeviceID(),
-              deviceID != kAudioObjectUnknown, deviceID != outputDeviceID
+              deviceID != kAudioObjectUnknown,
+              force || deviceID != outputDeviceID
         else {
             return
         }
 
-        removeVolumeListeners()
+        removeDeviceListeners()
         outputDeviceID = deviceID
 
         volumePropertyAddress = audioController.volumePropertyAddress(for: deviceID)
         mutePropertyAddress = audioController.mutePropertyAddress(for: deviceID)
 
         if var volAddr = volumePropertyAddress {
-            AudioObjectAddPropertyListener(
+            _ = AudioObjectAddPropertyListener(
                 outputDeviceID, &volAddr, Self.propertyCallback,
                 Unmanaged.passUnretained(self).toOpaque()
             )
         }
 
         if var muteAddr = mutePropertyAddress {
-            AudioObjectAddPropertyListener(
+            _ = AudioObjectAddPropertyListener(
                 outputDeviceID, &muteAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
+
+        var configAddr = streamConfigurationAddress
+        if AudioObjectHasProperty(outputDeviceID, &configAddr) {
+            _ = AudioObjectAddPropertyListener(
+                outputDeviceID, &configAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
+
+        var aliveAddr = deviceAliveAddress
+        if AudioObjectHasProperty(outputDeviceID, &aliveAddr) {
+            _ = AudioObjectAddPropertyListener(
+                outputDeviceID, &aliveAddr, Self.propertyCallback,
                 Unmanaged.passUnretained(self).toOpaque()
             )
         }
@@ -177,16 +218,22 @@ final class VolumeMonitor {
         let monitor = Unmanaged<VolumeMonitor>.fromOpaque(clientData).takeUnretainedValue()
 
         var shouldUpdateDevice = false
+        var shouldRefreshDevice = false
         for i in 0 ..< numAddresses {
-            if addresses[Int(i)].mSelector == kAudioHardwarePropertyDefaultOutputDevice {
+            let selector = addresses[Int(i)].mSelector
+            if selector == kAudioHardwarePropertyDefaultOutputDevice {
                 shouldUpdateDevice = true
-                break
+            }
+            if selector == kAudioDevicePropertyStreamConfiguration || selector == kAudioDevicePropertyDeviceIsAlive {
+                shouldRefreshDevice = true
             }
         }
 
         Task { @MainActor in
             if shouldUpdateDevice {
                 monitor.updateOutputDevice()
+            } else if shouldRefreshDevice {
+                monitor.updateOutputDevice(force: true)
             }
             monitor.scheduleStateRefresh()
         }

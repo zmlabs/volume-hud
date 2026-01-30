@@ -46,7 +46,10 @@ final class SystemAudioController {
         }
 
         address.mElement = 1
-        return AudioObjectHasProperty(deviceID, &address) ? address : nil
+        if AudioObjectHasProperty(deviceID, &address) {
+            return address
+        }
+        return nil
     }
 
     func mutePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress? {
@@ -55,7 +58,10 @@ final class SystemAudioController {
             mScope: kAudioObjectPropertyScopeOutput,
             mElement: kAudioObjectPropertyElementMain
         )
-        return AudioObjectHasProperty(deviceID, &address) ? address : nil
+        if AudioObjectHasProperty(deviceID, &address) {
+            return address
+        }
+        return nil
     }
 
     func getVolume(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Float? {
@@ -64,7 +70,8 @@ final class SystemAudioController {
         var mutableAddress = address
 
         let status = AudioObjectGetPropertyData(deviceID, &mutableAddress, 0, nil, &size, &volume)
-        return status == noErr ? Float(volume) : nil
+        guard status == noErr else { return nil }
+        return Float(volume)
     }
 
     func setVolume(_ volume: Float, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
@@ -82,7 +89,8 @@ final class SystemAudioController {
         var mutableAddress = address
 
         let status = AudioObjectGetPropertyData(deviceID, &mutableAddress, 0, nil, &size, &muted)
-        return status == noErr ? (muted != 0) : nil
+        guard status == noErr else { return nil }
+        return muted != 0
     }
 
     func setMute(_ muted: Bool, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
