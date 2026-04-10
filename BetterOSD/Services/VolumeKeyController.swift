@@ -105,9 +105,10 @@ final class VolumeKeyController: VolumeKeyHandling {
         isMuted: Bool,
         fineStep: Bool
     ) -> MediaKeyHandlingResult {
-        let step = fineStep ? HUDCalculation.fineStep : HUDCalculation.coarseStep
-        let delta = (key == .soundUp) ? step : -step
-        let targetVolume = max(0, min(1, currentVolume + delta))
+        let stepsPerUnit = fineStep ? HUDCalculation.fineSteps : HUDCalculation.standardSteps
+        let currentStep = Int(round(currentVolume * Float(stepsPerUnit)))
+        let targetStep = max(0, min(stepsPerUnit, currentStep + (key == .soundUp ? 1 : -1)))
+        let targetVolume = Float(targetStep) / Float(stepsPerUnit)
 
         var handled = false
         var didChange = false

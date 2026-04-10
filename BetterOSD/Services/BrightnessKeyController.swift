@@ -24,12 +24,13 @@ final class BrightnessKeyController {
             return .passThrough
         }
 
-        let step = fineStep ? HUDCalculation.fineStep : HUDCalculation.coarseStep
-        let delta: Float = key == .brightnessUp ? step : -step
-        let targetBrightness = max(0, min(1, currentBrightness + delta))
+        let stepsPerUnit = fineStep ? HUDCalculation.fineSteps : HUDCalculation.standardSteps
+        let currentStep = Int(round(currentBrightness * Float(stepsPerUnit)))
+        let targetStep = max(0, min(stepsPerUnit, currentStep + (key == .brightnessUp ? 1 : -1)))
+        let targetBrightness = Float(targetStep) / Float(stepsPerUnit)
 
-        if targetBrightness == currentBrightness {
-            currentState = BrightnessState(brightness: currentBrightness)
+        if targetStep == currentStep {
+            currentState = BrightnessState(brightness: targetBrightness)
             return .consumed(didChange: false)
         }
 
@@ -40,6 +41,6 @@ final class BrightnessKeyController {
         let actualBrightness = displayController.currentBrightness() ?? targetBrightness
 
         currentState = BrightnessState(brightness: actualBrightness)
-        return .consumed(didChange: actualBrightness != currentBrightness)
+        return .consumed(didChange: true)
     }
 }
