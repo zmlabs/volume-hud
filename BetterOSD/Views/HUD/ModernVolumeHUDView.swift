@@ -9,9 +9,8 @@ import SwiftUI
 
 struct ModernVolumeHUDView: View {
     let volumeState: VolumeState
-
-    @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
-    @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
+    let liquidGlassEnable: Bool
+    let glassVariant: Int
 
     var body: some View {
         let content = HStack(spacing: 16) {
@@ -112,10 +111,10 @@ struct ModernVolumeProgressTicks: View {
 
 #Preview {
     VStack(spacing: 30) {
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.06, isMuted: false))
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.5, isMuted: false))
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.9, isMuted: false))
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.3, isMuted: true))
+        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.06, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.5, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.9, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.3, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
     }
     .padding(40)
     .background(.black.opacity(0.1))

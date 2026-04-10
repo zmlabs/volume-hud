@@ -15,12 +15,15 @@ final class VolumeMonitor {
     let volumeChangePublisher = PassthroughSubject<VolumeState, Never>()
     private(set) var currentVolumeState = VolumeState()
 
-    private let audioController = SystemAudioController.shared
+    private let audioController: SystemAudioControlling
     private static let debounceInterval: TimeInterval = 0.05
     private var outputDeviceID: AudioDeviceID = kAudioObjectUnknown
     private var volumePropertyAddress: AudioObjectPropertyAddress?
     private var mutePropertyAddress: AudioObjectPropertyAddress?
     private var debounceTask: Task<Void, Never>?
+    private var outputDeviceProbeTask: Task<Void, Never>?
+    private var outputDeviceProbeAttempt = 0
+    private var pendingOutputDeviceID = AudioDeviceID(kAudioObjectUnknown)
 
     private var defaultDeviceAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -28,25 +31,32 @@ final class VolumeMonitor {
         mElement: kAudioObjectPropertyElementMain
     )
 
-    private let mainVolumeAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioDevicePropertyVolumeScalar,
+    private var streamConfigurationAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyStreamConfiguration,
         mScope: kAudioObjectPropertyScopeOutput,
         mElement: kAudioObjectPropertyElementMain
     )
 
-    private let channel1VolumeAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioDevicePropertyVolumeScalar,
-        mScope: kAudioObjectPropertyScopeOutput,
-        mElement: 1
-    )
-
-    private var muteAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioDevicePropertyMute,
-        mScope: kAudioObjectPropertyScopeOutput,
+    private var deviceAliveAddress = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyDeviceIsAlive,
+        mScope: kAudioObjectPropertyScopeGlobal,
         mElement: kAudioObjectPropertyElementMain
     )
 
-    private init() {
+    init(
+        audioController: SystemAudioControlling = SystemAudioController.shared,
+        autoStart: Bool = true,
+        initialOutputDeviceID: AudioDeviceID = kAudioObjectUnknown,
+        initialVolumePropertyAddress: AudioObjectPropertyAddress? = nil,
+        initialMutePropertyAddress: AudioObjectPropertyAddress? = nil
+    ) {
+        self.audioController = audioController
+        outputDeviceID = initialOutputDeviceID
+        volumePropertyAddress = initialVolumePropertyAddress
+        mutePropertyAddress = initialMutePropertyAddress
+
+        guard autoStart else { return }
+
         setupDeviceListener()
         updateOutputDevice()
         refreshState()
@@ -54,6 +64,7 @@ final class VolumeMonitor {
 
     deinit {
         debounceTask?.cancel()
+        outputDeviceProbeTask?.cancel()
     }
 
     // MARK: - Listener Setup
@@ -67,7 +78,7 @@ final class VolumeMonitor {
         )
     }
 
-    private func removeVolumeListeners() {
+    private func removeDeviceListeners() {
         guard outputDeviceID != kAudioObjectUnknown else { return }
 
         if var volAddr = volumePropertyAddress {
@@ -85,6 +96,18 @@ final class VolumeMonitor {
             )
             mutePropertyAddress = nil
         }
+
+        var configAddr = streamConfigurationAddress
+        AudioObjectRemovePropertyListener(
+            outputDeviceID, &configAddr, Self.propertyCallback,
+            Unmanaged.passUnretained(self).toOpaque()
+        )
+
+        var aliveAddr = deviceAliveAddress
+        AudioObjectRemovePropertyListener(
+            outputDeviceID, &aliveAddr, Self.propertyCallback,
+            Unmanaged.passUnretained(self).toOpaque()
+        )
     }
 
     private func removeAllListeners() {
@@ -94,41 +117,140 @@ final class VolumeMonitor {
             Self.propertyCallback,
             Unmanaged.passUnretained(self).toOpaque()
         )
-        removeVolumeListeners()
+        removeDeviceListeners()
     }
 
     func stop() {
         debounceTask?.cancel()
+        outputDeviceProbeTask?.cancel()
         removeAllListeners()
     }
 
     // MARK: - State Updates
 
-    func updateOutputDevice() {
+    func updateOutputDevice(force: Bool = false) {
         guard let deviceID = audioController.defaultOutputDeviceID(),
-              deviceID != kAudioObjectUnknown, deviceID != outputDeviceID
+              deviceID != kAudioObjectUnknown
         else {
             return
         }
 
-        removeVolumeListeners()
-        outputDeviceID = deviceID
+        prepareProbe(for: deviceID)
 
-        volumePropertyAddress = audioController.volumePropertyAddress(for: deviceID)
-        mutePropertyAddress = audioController.mutePropertyAddress(for: deviceID)
+        guard force || deviceID != outputDeviceID else {
+            return
+        }
+
+        guard audioController.isDeviceAlive(deviceID: deviceID) else {
+            scheduleOutputDeviceProbeRetryIfNeeded(for: deviceID)
+            return
+        }
+
+        let volumeAddress = audioController.volumePropertyAddress(for: deviceID)
+        let muteAddress = audioController.mutePropertyAddress(for: deviceID)
+        let decision = VolumeMonitorRefreshPlanner.probeDecision(
+            isAlive: true,
+            hasVolumeControl: volumeAddress != nil,
+            attempt: outputDeviceProbeAttempt
+        )
+
+        switch decision {
+        case .apply, .acceptWithoutVolumeControl:
+            applyOutputDeviceChange(
+                deviceID: deviceID,
+                volumeAddress: volumeAddress,
+                muteAddress: muteAddress
+            )
+
+        case let .retry(delay):
+            scheduleOutputDeviceProbeRetry(for: deviceID, delayMilliseconds: delay)
+
+        case .skipUntilNextDeviceChange:
+            return
+        }
+    }
+
+    private func prepareProbe(for deviceID: AudioDeviceID) {
+        guard pendingOutputDeviceID != deviceID else { return }
+        outputDeviceProbeTask?.cancel()
+        outputDeviceProbeTask = nil
+        outputDeviceProbeAttempt = 0
+        pendingOutputDeviceID = deviceID
+    }
+
+    private func applyOutputDeviceChange(
+        deviceID: AudioDeviceID,
+        volumeAddress: AudioObjectPropertyAddress?,
+        muteAddress: AudioObjectPropertyAddress?
+    ) {
+        outputDeviceProbeTask?.cancel()
+        outputDeviceProbeTask = nil
+        outputDeviceProbeAttempt = 0
+        pendingOutputDeviceID = kAudioObjectUnknown
+
+        removeDeviceListeners()
+        outputDeviceID = deviceID
+        volumePropertyAddress = volumeAddress
+        mutePropertyAddress = muteAddress
 
         if var volAddr = volumePropertyAddress {
-            AudioObjectAddPropertyListener(
+            _ = AudioObjectAddPropertyListener(
                 outputDeviceID, &volAddr, Self.propertyCallback,
                 Unmanaged.passUnretained(self).toOpaque()
             )
         }
 
         if var muteAddr = mutePropertyAddress {
-            AudioObjectAddPropertyListener(
+            _ = AudioObjectAddPropertyListener(
                 outputDeviceID, &muteAddr, Self.propertyCallback,
                 Unmanaged.passUnretained(self).toOpaque()
             )
+        }
+
+        var configAddr = streamConfigurationAddress
+        if AudioObjectHasProperty(outputDeviceID, &configAddr) {
+            _ = AudioObjectAddPropertyListener(
+                outputDeviceID, &configAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
+
+        var aliveAddr = deviceAliveAddress
+        if AudioObjectHasProperty(outputDeviceID, &aliveAddr) {
+            _ = AudioObjectAddPropertyListener(
+                outputDeviceID, &aliveAddr, Self.propertyCallback,
+                Unmanaged.passUnretained(self).toOpaque()
+            )
+        }
+    }
+
+    private func scheduleOutputDeviceProbeRetryIfNeeded(for deviceID: AudioDeviceID) {
+        guard let delay = VolumeMonitorRefreshPlanner.retryDelay(attempt: outputDeviceProbeAttempt) else {
+            applyOutputDeviceChange(
+                deviceID: deviceID,
+                volumeAddress: audioController.volumePropertyAddress(for: deviceID),
+                muteAddress: audioController.mutePropertyAddress(for: deviceID)
+            )
+            scheduleStateRefresh()
+            return
+        }
+
+        scheduleOutputDeviceProbeRetry(for: deviceID, delayMilliseconds: delay)
+    }
+
+    private func scheduleOutputDeviceProbeRetry(for deviceID: AudioDeviceID, delayMilliseconds: Int) {
+        outputDeviceProbeTask?.cancel()
+        pendingOutputDeviceID = deviceID
+        outputDeviceProbeAttempt += 1
+        outputDeviceProbeTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(delayMilliseconds))
+            guard Task.isCancelled == false else { return }
+
+            await MainActor.run {
+                guard let self, self.pendingOutputDeviceID == deviceID else { return }
+                self.updateOutputDevice(force: true)
+                self.scheduleStateRefresh()
+            }
         }
     }
 
@@ -157,16 +279,24 @@ final class VolumeMonitor {
         }
     }
 
+    func refreshStateForTesting() {
+        refreshState()
+    }
+
+    func seedStateForTesting(_ state: VolumeState) {
+        currentVolumeState = state
+    }
+
     // MARK: - Property Getters
 
     private func getVolume() -> Float {
-        guard let address = volumePropertyAddress else { return 0 }
-        return audioController.getVolume(deviceID: outputDeviceID, address: address) ?? 0
+        guard let address = volumePropertyAddress else { return currentVolumeState.volume }
+        return audioController.getVolume(deviceID: outputDeviceID, address: address) ?? currentVolumeState.volume
     }
 
     private func getMuteState() -> Bool {
-        guard let address = mutePropertyAddress else { return false }
-        return audioController.getMute(deviceID: outputDeviceID, address: address) ?? false
+        guard let address = mutePropertyAddress else { return currentVolumeState.isMuted }
+        return audioController.getMute(deviceID: outputDeviceID, address: address) ?? currentVolumeState.isMuted
     }
 
     // MARK: - Callback
@@ -175,19 +305,18 @@ final class VolumeMonitor {
         guard let clientData else { return noErr }
 
         let monitor = Unmanaged<VolumeMonitor>.fromOpaque(clientData).takeUnretainedValue()
-
-        var shouldUpdateDevice = false
-        for i in 0 ..< numAddresses {
-            if addresses[Int(i)].mSelector == kAudioHardwarePropertyDefaultOutputDevice {
-                shouldUpdateDevice = true
-                break
-            }
-        }
+        let selectors = (0 ..< Int(numAddresses)).map { addresses[$0].mSelector }
+        let action = VolumeMonitorRefreshPlanner.callbackAction(selectors: selectors)
 
         Task { @MainActor in
-            if shouldUpdateDevice {
-                monitor.updateOutputDevice()
+            switch action {
+            case .none:
+                break
+
+            case let .updateOutputDevice(force):
+                monitor.updateOutputDevice(force: force)
             }
+
             monitor.scheduleStateRefresh()
         }
         return noErr

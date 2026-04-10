@@ -9,9 +9,8 @@ import SwiftUI
 
 struct ClassicVolumeHUDView: View {
     let volumeState: VolumeState
-
-    @AppStorage(AppStorageKeys.liquidGlassEnable) private var liquidGlassEnable: Bool = true
-    @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
+    let liquidGlassEnable: Bool
+    let glassVariant: Int
 
     var body: some View {
         let content = VStack(spacing: 0) {
@@ -96,15 +95,15 @@ private struct VolumeSegment: View {
     VStack(spacing: 30) {
         // Display precise volume adjustment capabilities
         HStack(spacing: 20) {
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.15, isMuted: false))
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.37, isMuted: false))
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.68, isMuted: false))
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.15, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.37, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.68, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
         }
 
         HStack(spacing: 20) {
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.83, isMuted: false))
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.92, isMuted: false))
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.45, isMuted: true))
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.83, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.92, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.45, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
         }
     }
     .padding(60)

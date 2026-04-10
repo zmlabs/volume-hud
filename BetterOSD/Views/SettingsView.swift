@@ -22,7 +22,6 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
             Text("Settings")
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -39,161 +38,14 @@ struct SettingsView: View {
             }
 
             VStack(spacing: 24) {
-                // Appearance Section
-                SettingsSection(title: NSLocalizedString("Appearance", comment: "Appearance")) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 16) {
-                            ForEach(HUDStyle.allCases) { style in
-                                HUDStyleCard(
-                                    style: style,
-                                    isSelected: hudStyle == style,
-                                    onSelect: {
-                                        hudStyle = style
-                                    }
-                                ) {
-                                    previewForStyle(style)
-                                }
-                            }
-                        }
-                        .frame(height: 200)
-                        .padding(8)
-                    }
-                }
-
-                // General Section
-                SettingsSection(title: NSLocalizedString("General", comment: "General")) {
-                    Group {
-                        HStack {
-                            Text("Launch at Login")
-                                .font(.body)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            LaunchAtLogin.Toggle()
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                        }
-                        HStack {
-                            Text("Show in Menu Bar")
-                                .font(.body)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Toggle("Show in Menu Bar", isOn: $showInMenuBar)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                                .onChange(of: showInMenuBar) { _, newValue in
-                                    if let delegate = NSApplication.shared.delegate as? AppDelegate {
-                                        delegate.updateMenuBarVisibility(visible: newValue)
-                                    }
-                                }
-                        }
-                        HStack {
-                            Text("Liquid Glass Enable")
-                                .font(.body)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Toggle("Liquid Glass Enable", isOn: $liquidGlassEnable)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
-                                .controlSize(.small)
-                                .onChange(of: liquidGlassEnable) { _, _ in
-                                    HUDPreviewManager.shared.isPreviewActive = true
-                                    HUDPreviewManager.shared.isPreviewActive = false
-                                }
-                        }
-
-                        HStack {
-                            Text("Bottom Offset")
-                                .font(.body)
-                                .foregroundStyle(.primary)
-
-                            Spacer()
-
-                            Slider(value: $bottomOffset, in: 50 ... 220, onEditingChanged: { editing in
-                                HUDPreviewManager.shared.isPreviewActive = editing
-                            })
-                            .frame(width: 150)
-                            .onChange(of: bottomOffset) { _, newValue in
-                                HUDPreviewManager.shared.bottomOffset = newValue
-                            }
-                        }
-
-                        if liquidGlassEnable {
-                            HStack {
-                                Text("Glass Variant")
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-
-                                Spacer()
-
-                                Picker("Glass Variant", selection: $glassVariant) {
-                                    ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
-                                        Text("\(value)")
-                                            .tag(value)
-                                    }
-                                }
-                                .labelsHidden()
-                                .pickerStyle(.automatic)
-                                .onChange(of: glassVariant) { _, _ in
-                                    HUDPreviewManager.shared.isPreviewActive = true
-                                    HUDPreviewManager.shared.isPreviewActive = false
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                }
+                appearanceSection
+                generalSection
             }
             .padding(.horizontal, 24)
 
             Spacer()
-
             Divider()
-
-            // Footer
-            HStack {
-                HStack(spacing: 12) {
-                    Link("Privacy", destination: URL(string: "https://zmlabs.app/volume-hud/privacy")!)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .underline()
-                    Text("•")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Link("Terms", destination: URL(string: "https://zmlabs.app/volume-hud/terms")!)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .underline()
-                }
-                Spacer()
-                VStack(alignment: .trailing) {
-                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    HStack(spacing: 4) {
-                        Text("BetterOSD is an")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Link("open-source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .underline()
-                        Text("application")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            footerView
         }
         .frame(width: 580)
         .onAppear {
@@ -206,6 +58,147 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
         }
+    }
+
+    private var appearanceSection: some View {
+        SettingsSection(title: NSLocalizedString("Appearance", comment: "Appearance")) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 16) {
+                    ForEach(HUDStyle.allCases) { style in
+                        HUDStyleCard(
+                            style: style,
+                            isSelected: hudStyle == style,
+                            onSelect: {
+                                hudStyle = style
+                            }
+                        ) {
+                            previewForStyle(style)
+                        }
+                    }
+                }
+                .frame(height: 200)
+                .padding(8)
+            }
+        }
+    }
+
+    private var generalSection: some View {
+        SettingsSection(title: NSLocalizedString("General", comment: "General")) {
+            Group {
+                HStack {
+                    Text("Launch at Login")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    LaunchAtLogin.Toggle()
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                HStack {
+                    Text("Show in Menu Bar")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("Show in Menu Bar", isOn: $showInMenuBar)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .onChange(of: showInMenuBar) { _, newValue in
+                            if let delegate = NSApplication.shared.delegate as? AppDelegate {
+                                delegate.updateMenuBarVisibility(visible: newValue)
+                            }
+                        }
+                }
+                HStack {
+                    Text("Liquid Glass Enable")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("Liquid Glass Enable", isOn: $liquidGlassEnable)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .onChange(of: liquidGlassEnable) { _, _ in
+                            HUDPreviewManager.shared.isPreviewActive = true
+                            HUDPreviewManager.shared.isPreviewActive = false
+                        }
+                }
+                HStack {
+                    Text("Bottom Offset")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Slider(value: $bottomOffset, in: 50 ... 220, onEditingChanged: { editing in
+                        HUDPreviewManager.shared.isPreviewActive = editing
+                    })
+                    .frame(width: 150)
+                    .onChange(of: bottomOffset) { _, newValue in
+                        HUDPreviewManager.shared.bottomOffset = newValue
+                    }
+                }
+                if liquidGlassEnable {
+                    HStack {
+                        Text("Glass Variant")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Picker("Glass Variant", selection: $glassVariant) {
+                            ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
+                                Text("\(value)")
+                                    .tag(value)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.automatic)
+                        .onChange(of: glassVariant) { _, _ in
+                            HUDPreviewManager.shared.isPreviewActive = true
+                            HUDPreviewManager.shared.isPreviewActive = false
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+    }
+
+    private var footerView: some View {
+        HStack {
+            HStack(spacing: 12) {
+                Link("Privacy", destination: URL(string: "https://zmlabs.app/volume-hud/privacy")!)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .underline()
+                Text("•")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Link("Terms", destination: URL(string: "https://zmlabs.app/volume-hud/terms")!)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .underline()
+            }
+            Spacer()
+            VStack(alignment: .trailing) {
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text("BetterOSD is an")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Link("open-source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .underline()
+                    Text("application")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
     }
 
     private func refreshAccessibilityStatus() {
@@ -222,11 +215,15 @@ struct SettingsView: View {
         switch style {
         case .classic:
             ClassicVolumeHUDView(
-                volumeState: volumeState
+                volumeState: volumeState,
+                liquidGlassEnable: liquidGlassEnable,
+                glassVariant: glassVariant
             )
         case .modern:
             ModernVolumeHUDView(
-                volumeState: volumeState
+                volumeState: volumeState,
+                liquidGlassEnable: liquidGlassEnable,
+                glassVariant: glassVariant
             )
         }
     }
@@ -313,31 +310,31 @@ struct HUDStyleCard<PreviewContent: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.background)
-                .padding()
-                .overlay {
-                    preview
-                        .scaleEffect(0.7)
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            isSelected ? Color.accentColor : Color.clear,
-                            lineWidth: 2
-                        )
-                }
+        Button(action: onSelect) {
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(.background)
+                    .padding()
+                    .overlay {
+                        preview
+                            .scaleEffect(0.7)
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(
+                                isSelected ? Color.accentColor : Color.clear,
+                                lineWidth: 2
+                            )
+                    }
 
-            Text(style.displayName)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                Text(style.displayName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+            }
+            .frame(width: 220)
         }
-        .frame(width: 220)
-        .onTapGesture {
-            onSelect()
-        }
+        .buttonStyle(.plain)
     }
 }
 

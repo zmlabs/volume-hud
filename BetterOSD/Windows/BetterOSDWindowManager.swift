@@ -36,15 +36,16 @@ final class BetterOSDWindowManager {
         Publishers.Merge(volumeChanges, volumeKeyPresses)
             .throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: false)
             .sink { [weak self] _ in
-                Task { [weak self] in
+                MainActor.assumeIsolated {
                     self?.showHUD()
                 }
             }
             .store(in: &cancellables)
 
         previewManager.$isPreviewActive
+            .receive(on: RunLoop.main)
             .sink { [weak self] isActive in
-                Task { [weak self] in
+                MainActor.assumeIsolated {
                     if isActive {
                         self?.showHUD(autoHide: false)
                     } else {
@@ -56,8 +57,9 @@ final class BetterOSDWindowManager {
 
         previewManager.$bottomOffset
             .removeDuplicates()
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                Task { [weak self] in
+                MainActor.assumeIsolated {
                     self?.hudWindow?.updatePosition()
                 }
             }
