@@ -8,12 +8,16 @@
 import CoreAudio
 import Foundation
 
-enum MediaKeyHandlingResult {
+enum MediaKeyHandlingResult: Equatable {
     case passThrough
     case consumed(didChange: Bool)
 }
 
-final class VolumeKeyController {
+protocol VolumeKeyHandling: AnyObject {
+    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult
+}
+
+final class VolumeKeyController: VolumeKeyHandling {
     private let audioController = SystemAudioController.shared
     private var lastNonZeroVolumeByDevice: [AudioDeviceID: Float] = [:]
 
@@ -101,7 +105,7 @@ final class VolumeKeyController {
         isMuted: Bool,
         fineStep: Bool
     ) -> MediaKeyHandlingResult {
-        let step = fineStep ? VolumeCalculation.fineStep : VolumeCalculation.coarseStep
+        let step = fineStep ? HUDCalculation.fineStep : HUDCalculation.coarseStep
         let delta = (key == .soundUp) ? step : -step
         let targetVolume = max(0, min(1, currentVolume + delta))
 

@@ -1,5 +1,5 @@
 //
-//  VolumeCalculation.swift
+//  HUDCalculation.swift
 //  BetterOSD
 //
 //  Created by yu on 2025/12/26.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum VolumeCalculation {
+nonisolated enum HUDCalculation {
     static let fineSteps = 64
     static let standardSteps = 16
     static let fineStepsPerStandardStep = fineSteps / standardSteps

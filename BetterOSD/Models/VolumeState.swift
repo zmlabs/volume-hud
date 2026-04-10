@@ -38,4 +38,8 @@ struct VolumeState: Equatable {
         if volume < 0.66 { return "speaker.wave.2.fill" }
         return "speaker.wave.3.fill"
     }
+
+    var displayState: HUDDisplayState {
+        HUDDisplayState(iconName: iconName, level: volume, isMuted: isMuted)
+    }
 }

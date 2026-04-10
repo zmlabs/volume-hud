@@ -5,14 +5,12 @@
 //  Created by yu on 2025/9/23.
 //
 
-import Combine
 import CoreAudio
 import Foundation
 
 final class VolumeMonitor {
     static let shared = VolumeMonitor()
 
-    let volumeChangePublisher = PassthroughSubject<VolumeState, Never>()
     private(set) var currentVolumeState = VolumeState()
 
     private let audioController: SystemAudioControlling
@@ -275,7 +273,7 @@ final class VolumeMonitor {
         currentVolumeState = newState
 
         if hadVolumeChange {
-            volumeChangePublisher.send(newState)
+            HUDDisplayStateStore.shared.update(newState.displayState)
         }
     }
 

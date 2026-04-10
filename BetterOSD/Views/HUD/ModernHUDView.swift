@@ -1,5 +1,5 @@
 //
-//  ModernVolumeHUDView.swift
+//  ModernHUDView.swift
 //  BetterOSD
 //
 //  Created by yu on 2025/9/23.
@@ -7,27 +7,27 @@
 
 import SwiftUI
 
-struct ModernVolumeHUDView: View {
-    let volumeState: VolumeState
+struct ModernHUDView: View {
+    let displayState: HUDDisplayState
     let liquidGlassEnable: Bool
     let glassVariant: Int
 
     var body: some View {
         let content = HStack(spacing: 16) {
-            Image(systemName: volumeState.iconName)
+            Image(systemName: displayState.iconName)
                 .font(.system(size: 24, weight: .medium))
                 .frame(width: 28)
                 .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                 .contentTransition(.symbolEffect(.replace))
 
             VStack(spacing: 4) {
-                ModernVolumeProgressBar(
-                    volumeState: volumeState
+                ModernHUDProgressBar(
+                    displayState: displayState
                 )
                 .frame(height: 4)
 
-                ModernVolumeProgressTicks(
-                    volumeState: volumeState
+                ModernHUDProgressTicks(
+                    displayState: displayState
                 )
                 .frame(height: 8)
             }
@@ -48,48 +48,38 @@ struct ModernVolumeHUDView: View {
     }
 }
 
-struct ModernVolumeProgressBar: View {
-    let volumeState: VolumeState
+struct ModernHUDProgressBar: View {
+    let displayState: HUDDisplayState
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // Background track
                 Capsule()
                     .fill(.primary.opacity(0.2))
 
-                // Progress fill
-                if !volumeState.isMuted, volumeState.volume > 0 {
+                if !displayState.isMuted, displayState.level > 0 {
                     Capsule()
                         .fill(Color(.secondaryLabelColor))
-                        .frame(width: geometry.size.width * calculateVisualProgress())
+                        .frame(width: geometry.size.width * CGFloat(displayState.level))
                 }
             }
         }
     }
-
-    private func calculateVisualProgress() -> CGFloat {
-        // Use volume directly for smooth progress bar fill
-        // This supports both 16-step and 64-step (Shift+Option) adjustments
-        CGFloat(volumeState.volume)
-    }
 }
 
-struct ModernVolumeProgressTicks: View {
-    let volumeState: VolumeState
+struct ModernHUDProgressTicks: View {
+    let displayState: HUDDisplayState
 
     var body: some View {
         HStack(spacing: 0) {
-            // 17 ticks for 16 volume steps (0%, 6.25%, 12.5%, ..., 100%)
-            ForEach(0 ... VolumeCalculation.standardSteps, id: \.self) { index in
+            ForEach(0 ... HUDCalculation.standardSteps, id: \.self) { index in
                 VStack {
                     Spacer()
                     Rectangle()
                         .fill(tickColor(for: index))
                         .frame(width: 1, height: tickHeight(for: index))
                 }
-                // Add spacer between ticks except after the last one
-                if index < VolumeCalculation.standardSteps {
+                if index < HUDCalculation.standardSteps {
                     Spacer()
                 }
             }
@@ -97,9 +87,9 @@ struct ModernVolumeProgressTicks: View {
     }
 
     private func tickColor(for index: Int) -> Color {
-        let isActive = !volumeState.isMuted && VolumeCalculation.isTickActive(
+        let isActive = !displayState.isMuted && HUDCalculation.isTickActive(
             tickIndex: index,
-            volume: volumeState.volume
+            volume: displayState.level
         )
         return .primary.opacity(isActive ? 0.8 : 0.3)
     }
@@ -111,10 +101,10 @@ struct ModernVolumeProgressTicks: View {
 
 #Preview {
     VStack(spacing: 30) {
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.06, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.5, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.9, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-        ModernVolumeHUDView(volumeState: VolumeState(volume: 0.3, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
+        ModernHUDView(displayState: HUDDisplayState(iconName: "speaker.fill", level: 0.06, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.2.fill", level: 0.5, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.3.fill", level: 0.9, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+        ModernHUDView(displayState: HUDDisplayState(iconName: "speaker.slash.fill", level: 0.3, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
     }
     .padding(40)
     .background(.black.opacity(0.1))

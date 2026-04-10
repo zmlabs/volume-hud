@@ -17,7 +17,7 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
     @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
-    @State private var volumeState: VolumeState = .init()
+    @State private var displayState = HUDDisplayState.defaultVolumePlaceholder
     @State private var accessibilityGranted = false
 
     var body: some View {
@@ -49,11 +49,11 @@ struct SettingsView: View {
         }
         .frame(width: 580)
         .onAppear {
-            volumeState = VolumeMonitor.shared.currentVolumeState
+            displayState = HUDDisplayStateStore.shared.current
             refreshAccessibilityStatus()
         }
-        .onReceive(VolumeMonitor.shared.volumeChangePublisher.receive(on: RunLoop.main)) {
-            volumeState = $0
+        .onReceive(HUDDisplayStateStore.shared.publisher.receive(on: RunLoop.main)) {
+            displayState = $0
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
@@ -214,14 +214,14 @@ struct SettingsView: View {
     private func previewForStyle(_ style: HUDStyle) -> some View {
         switch style {
         case .classic:
-            ClassicVolumeHUDView(
-                volumeState: volumeState,
+            ClassicHUDView(
+                displayState: displayState,
                 liquidGlassEnable: liquidGlassEnable,
                 glassVariant: glassVariant
             )
         case .modern:
-            ModernVolumeHUDView(
-                volumeState: volumeState,
+            ModernHUDView(
+                displayState: displayState,
                 liquidGlassEnable: liquidGlassEnable,
                 glassVariant: glassVariant
             )

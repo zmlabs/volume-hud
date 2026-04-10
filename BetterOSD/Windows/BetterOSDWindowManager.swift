@@ -10,8 +10,6 @@ import Combine
 import Foundation
 
 final class BetterOSDWindowManager {
-    private let volumeMonitor = VolumeMonitor.shared
-    private let mediaKeyMonitor = MediaKeyMonitor.shared
     private let previewManager = HUDPreviewManager.shared
 
     private var hudWindow: BetterOSDWindow?
@@ -19,21 +17,14 @@ final class BetterOSDWindowManager {
     private var hideTask: Task<Void, Never>?
 
     init() {
+        HUDDisplayStateStore.shared.bootstrap(with: VolumeMonitor.shared.currentVolumeState.displayState)
         setupObservers()
     }
 
     private func setupObservers() {
-        mediaKeyMonitor.start()
+        MediaKeyMonitor.shared.start()
 
-        let volumeChanges = volumeMonitor.volumeChangePublisher
-            .map { _ in () }
-
-        let volumeKeyPresses = mediaKeyMonitor.mediaKeyPublisher
-            .filter { $0 == .soundUp || $0 == .soundDown }
-            .map { _ in () }
-
-        // Volume changes or volume key presses
-        Publishers.Merge(volumeChanges, volumeKeyPresses)
+        HUDDisplayStateStore.shared.publisher
             .throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: false)
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
