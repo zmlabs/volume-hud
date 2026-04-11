@@ -1,6 +1,6 @@
 # BetterOSD
 
-Bring back the classic volume feedback overlay to the center of your screen on macOS.
+Bring back the classic volume and brightness feedback overlay to the center of your screen on macOS.
 
 ![BetterOSD screenshot](screenshot.png)
 
@@ -15,4 +15,5 @@ Due to the use of private APIs and Accessibility permissions, we can no longer s
 
 ## Notes
 - You'll be prompted for **Accessibility** permission so BetterOSD can listen to media keys.
+- Supports both volume and brightness HUD feedback.
 - Only supports Apple Silicon (M-series Macs).
