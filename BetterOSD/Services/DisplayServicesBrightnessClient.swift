@@ -27,7 +27,8 @@ final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControllin
 
     func currentBrightness() -> Float? {
         guard let displayID = firstControllableDisplayID(),
-              let getBrightnessFn else {
+              let getBrightnessFn
+        else {
             return nil
         }
 
@@ -38,7 +39,8 @@ final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControllin
 
     func setBrightness(_ brightness: Float) -> Bool {
         guard let displayID = firstControllableDisplayID(),
-              let setBrightnessFn else {
+              let setBrightnessFn
+        else {
             return false
         }
 
@@ -47,7 +49,8 @@ final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControllin
 
     private func firstControllableDisplayID() -> CGDirectDisplayID? {
         guard resolveSymbolsIfNeeded(),
-              let canChangeBrightness else {
+              let canChangeBrightness
+        else {
             return nil
         }
 

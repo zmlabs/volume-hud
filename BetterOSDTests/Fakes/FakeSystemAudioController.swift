@@ -5,8 +5,8 @@
 //  Created by yu on 2026/4/11.
 //
 
-import CoreAudio
 @testable import BetterOSD
+import CoreAudio
 
 @MainActor
 final class FakeSystemAudioController: SystemAudioControlling {
@@ -17,10 +17,27 @@ final class FakeSystemAudioController: SystemAudioControlling {
     var volume: Float?
     var isMuted: Bool?
 
-    func defaultOutputDeviceID() -> AudioDeviceID? { defaultDeviceID }
-    func isDeviceAlive(deviceID: AudioDeviceID) -> Bool { deviceAlive }
-    func volumePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress? { volumeAddress }
-    func mutePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress? { muteAddress }
-    func getVolume(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Float? { volume }
-    func getMute(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool? { isMuted }
+    func defaultOutputDeviceID() -> AudioDeviceID? {
+        defaultDeviceID
+    }
+
+    func isDeviceAlive(deviceID _: AudioDeviceID) -> Bool {
+        deviceAlive
+    }
+
+    func volumePropertyAddress(for _: AudioDeviceID) -> AudioObjectPropertyAddress? {
+        volumeAddress
+    }
+
+    func mutePropertyAddress(for _: AudioDeviceID) -> AudioObjectPropertyAddress? {
+        muteAddress
+    }
+
+    func getVolume(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Float? {
+        volume
+    }
+
+    func getMute(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool? {
+        isMuted
+    }
 }

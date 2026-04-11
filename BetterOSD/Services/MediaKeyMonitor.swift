@@ -89,7 +89,7 @@ final class MediaKeyMonitor {
 
         let mask = CGEventMask(
             (1 << CGEventType.keyDown.rawValue) |
-            (1 << UInt64(NSEvent.EventType.systemDefined.rawValue))
+                (1 << UInt64(NSEvent.EventType.systemDefined.rawValue))
         )
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
@@ -204,9 +204,9 @@ final class MediaKeyMonitor {
     private func applyResult(_ result: MediaKeyHandlingResult, event: CGEvent) -> Unmanaged<CGEvent>? {
         switch result {
         case .passThrough:
-            return Unmanaged.passUnretained(event)
+            Unmanaged.passUnretained(event)
         case .consumed:
-            return nil
+            nil
         }
     }
 

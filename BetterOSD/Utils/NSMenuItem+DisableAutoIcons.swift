@@ -9,5 +9,7 @@ extension NSMenuItem {
         method_exchangeImplementations(original, replacement)
     }
 
-    @objc private func nilImage() -> NSImage? { nil }
+    @objc private func nilImage() -> NSImage? {
+        nil
+    }
 }

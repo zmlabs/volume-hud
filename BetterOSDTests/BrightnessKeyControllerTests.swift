@@ -6,8 +6,8 @@
 //
 
 import AppKit
-import Testing
 @testable import BetterOSD
+import Testing
 
 @MainActor
 struct BrightnessKeyControllerTests {

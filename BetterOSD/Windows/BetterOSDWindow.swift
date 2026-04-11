@@ -9,18 +9,38 @@ import AppKit
 import SwiftUI
 
 class BetterOSDWindow: NSPanel {
-    override var canBecomeKey: Bool { false }
-    override var canBecomeMain: Bool { false }
+    override var canBecomeKey: Bool {
+        false
+    }
+
+    override var canBecomeMain: Bool {
+        false
+    }
+
     private let hostingView: NSHostingView<BetterOSDFactoryView>
 
     private static let windowWidth: CGFloat = HUDLayout.windowSize.width
     private static let windowHeight: CGFloat = HUDLayout.windowSize.height
 
-    @objc(_hasActiveAppearance) dynamic func _hasActiveAppearance() -> Bool { true }
-    @objc(_hasActiveAppearanceIgnoringKeyFocus) dynamic func _hasActiveAppearanceIgnoringKeyFocus() -> Bool { true }
-    @objc(_hasActiveControls) dynamic func _hasActiveControls() -> Bool { true }
-    @objc(_hasKeyAppearance) dynamic func _hasKeyAppearance() -> Bool { true }
-    @objc(_hasMainAppearance) dynamic func _hasMainAppearance() -> Bool { true }
+    @objc(_hasActiveAppearance) dynamic func _hasActiveAppearance() -> Bool {
+        true
+    }
+
+    @objc(_hasActiveAppearanceIgnoringKeyFocus) dynamic func _hasActiveAppearanceIgnoringKeyFocus() -> Bool {
+        true
+    }
+
+    @objc(_hasActiveControls) dynamic func _hasActiveControls() -> Bool {
+        true
+    }
+
+    @objc(_hasKeyAppearance) dynamic func _hasKeyAppearance() -> Bool {
+        true
+    }
+
+    @objc(_hasMainAppearance) dynamic func _hasMainAppearance() -> Bool {
+        true
+    }
 
     init() {
         let contentView = BetterOSDFactoryView()

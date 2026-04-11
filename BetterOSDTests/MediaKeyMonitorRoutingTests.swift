@@ -6,9 +6,9 @@
 //
 
 import AppKit
+@testable import BetterOSD
 import CoreAudio
 import Testing
-@testable import BetterOSD
 
 @Suite(.serialized)
 @MainActor
@@ -67,7 +67,7 @@ private final class FakeVolumeKeyHandler: VolumeKeyHandling {
         self.result = result
     }
 
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
+    func handle(_: MediaKeyMonitor.MediaKey, fineStep _: Bool) -> MediaKeyHandlingResult {
         result
     }
 }
@@ -82,7 +82,7 @@ private final class FakeBrightnessKeyHandler: BrightnessKeyHandling {
         self.currentState = currentState
     }
 
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
+    func handle(_: MediaKeyMonitor.MediaKey, fineStep _: Bool) -> MediaKeyHandlingResult {
         result
     }
 }

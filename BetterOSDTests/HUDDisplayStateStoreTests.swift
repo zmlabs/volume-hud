@@ -5,9 +5,9 @@
 //  Created by yu on 2026/4/11.
 //
 
+@testable import BetterOSD
 import Combine
 import Testing
-@testable import BetterOSD
 
 @MainActor
 struct HUDDisplayStateStoreTests {

@@ -5,8 +5,8 @@
 //  Created by yu on 2026/4/11.
 //
 
-import Testing
 @testable import BetterOSD
+import Testing
 
 struct HUDCalculationTests {
     @Test

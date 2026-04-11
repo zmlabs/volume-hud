@@ -7,7 +7,7 @@
 
 import Foundation
 
-nonisolated struct BrightnessState: Equatable, Sendable {
+nonisolated struct BrightnessState: Equatable {
     let brightness: Float
 
     init(brightness: Float) {
