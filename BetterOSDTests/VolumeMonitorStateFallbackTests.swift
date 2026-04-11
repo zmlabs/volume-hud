@@ -1,6 +1,6 @@
+@testable import BetterOSD
 import CoreAudio
 import Testing
-@testable import BetterOSD
 
 @MainActor
 struct VolumeMonitorStateFallbackTests {

@@ -12,7 +12,9 @@ enum HUDStyle: String, CaseIterable, Identifiable {
     case classic
     case modern
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var displayName: String {
         switch self {

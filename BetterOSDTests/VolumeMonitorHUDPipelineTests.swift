@@ -5,9 +5,9 @@
 //  Created by yu on 2026/4/11.
 //
 
+@testable import BetterOSD
 import CoreAudio
 import Testing
-@testable import BetterOSD
 
 @Suite(.serialized)
 @MainActor

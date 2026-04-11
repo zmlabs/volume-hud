@@ -19,17 +19,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
 
-    var supportsGentleScheduledUpdateReminders: Bool { true }
+    var supportsGentleScheduledUpdateReminders: Bool {
+        true
+    }
 
     func standardUserDriverWillHandleShowingUpdate(
-        _ handleShowingUpdate: Bool,
-        forUpdate update: SUAppcastItem,
-        state: SPUUserUpdateState
+        _: Bool,
+        forUpdate _: SUAppcastItem,
+        state _: SPUUserUpdateState
     ) {
         NSApp.setActivationPolicy(.regular)
     }
 
-    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {}
+    func standardUserDriverDidReceiveUserAttention(forUpdate _: SUAppcastItem) {}
 
     func standardUserDriverWillFinishUpdateSession() {
         NSApp.setActivationPolicy(.accessory)

@@ -7,7 +7,7 @@
 
 import Foundation
 
-nonisolated struct HUDDisplayState: Equatable, Sendable {
+nonisolated struct HUDDisplayState: Equatable {
     let iconName: String
     let level: Float
     let isMuted: Bool

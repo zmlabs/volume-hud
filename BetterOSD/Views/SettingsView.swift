@@ -14,7 +14,9 @@ enum SettingsPreviewType: String, CaseIterable, Identifiable {
     case volume
     case brightness
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var displayName: String {
         switch self {
@@ -42,7 +44,9 @@ enum GlassVariantOption: Int, CaseIterable, Identifiable {
     case bubbles = 11
     case focusBorder = 12
 
-    var id: Int { rawValue }
+    var id: Int {
+        rawValue
+    }
 
     var displayName: String {
         switch self {
@@ -299,12 +303,7 @@ struct AccessibilityPermissionBanner: View {
 
 struct SettingsSection<Content: View>: View {
     let title: String
-    let content: Content
-
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
+    @ViewBuilder let content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -325,11 +324,7 @@ struct SettingsSection<Content: View>: View {
 }
 
 struct SettingsRow<Content: View>: View {
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
+    @ViewBuilder let content: Content
 
     var body: some View {
         HStack {
