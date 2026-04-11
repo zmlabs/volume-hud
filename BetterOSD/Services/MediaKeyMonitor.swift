@@ -7,7 +7,13 @@
 
 import AppKit
 import ApplicationServices
-import Combine
+
+protocol BrightnessKeyHandling: AnyObject {
+    var currentState: BrightnessState { get }
+    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult
+}
+
+extension BrightnessKeyController: BrightnessKeyHandling {}
 
 final class MediaKeyMonitor {
     enum MediaKey: Int {
@@ -20,15 +26,26 @@ final class MediaKeyMonitor {
 
     static let shared = MediaKeyMonitor()
 
-    let mediaKeyPublisher = PassthroughSubject<MediaKey, Never>()
-
     private var eventTap: CFMachPort?
     private var eventTapSource: CFRunLoopSource?
     private var eventTapRunLoop: CFRunLoop?
-    private let volumeKeyController = VolumeKeyController()
+    private let volumeKeyController: VolumeKeyHandling
+    private let brightnessKeyController: BrightnessKeyHandling
+    private let volumeMonitor: VolumeMonitor
     private var accessibilityPollTask: Task<Void, Never>?
 
-    private init() {}
+    private static let brightnessUpKeyCode: Int64 = 144
+    private static let brightnessDownKeyCode: Int64 = 145
+
+    init(
+        volumeKeyController: VolumeKeyHandling = VolumeKeyController(),
+        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
+        volumeMonitor: VolumeMonitor = .shared
+    ) {
+        self.volumeKeyController = volumeKeyController
+        self.brightnessKeyController = brightnessKeyController
+        self.volumeMonitor = volumeMonitor
+    }
 
     func hasAccessibilityPermission() -> Bool {
         AXIsProcessTrusted()
@@ -70,7 +87,10 @@ final class MediaKeyMonitor {
         let options = [promptKey: promptAccessibility as CFBoolean] as CFDictionary
         guard AXIsProcessTrustedWithOptions(options) else { return false }
 
-        let mask = CGEventMask(1 << UInt64(NSEvent.EventType.systemDefined.rawValue))
+        let mask = CGEventMask(
+            (1 << CGEventType.keyDown.rawValue) |
+            (1 << UInt64(NSEvent.EventType.systemDefined.rawValue))
+        )
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
         guard let tap = CGEvent.tapCreate(
@@ -121,26 +141,50 @@ final class MediaKeyMonitor {
 
     private static let eventTapCallback: CGEventTapCallBack = { _, type, event, refcon in
         guard let refcon else {
-            return Unmanaged.passRetained(event)
+            return Unmanaged.passUnretained(event)
         }
 
         let monitor = Unmanaged<MediaKeyMonitor>.fromOpaque(refcon).takeUnretainedValue()
 
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             monitor.enableEventTap()
-            return Unmanaged.passRetained(event)
+            return Unmanaged.passUnretained(event)
         }
 
         return monitor.handle(event)
     }
 
     private func handle(_ event: CGEvent) -> Unmanaged<CGEvent>? {
+        if event.type == .keyDown {
+            return handleBrightnessKeyDown(event)
+        }
+        return handleSystemDefinedMediaKey(event)
+    }
+
+    private func handleBrightnessKeyDown(_ event: CGEvent) -> Unmanaged<CGEvent>? {
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+
+        let mediaKey: MediaKey
+        switch keyCode {
+        case Self.brightnessUpKeyCode:
+            mediaKey = .brightnessUp
+        case Self.brightnessDownKeyCode:
+            mediaKey = .brightnessDown
+        default:
+            return Unmanaged.passUnretained(event)
+        }
+
+        let modifiers = NSEvent.ModifierFlags(rawValue: UInt(event.flags.rawValue))
+        return applyResult(handleMediaKey(mediaKey, modifiers: modifiers), event: event)
+    }
+
+    private func handleSystemDefinedMediaKey(_ event: CGEvent) -> Unmanaged<CGEvent>? {
         guard let nsEvent = NSEvent(cgEvent: event) else {
-            return Unmanaged.passRetained(event)
+            return Unmanaged.passUnretained(event)
         }
 
         guard nsEvent.type == .systemDefined, nsEvent.subtype.rawValue == 8 else {
-            return Unmanaged.passRetained(event)
+            return Unmanaged.passUnretained(event)
         }
 
         let data1 = nsEvent.data1
@@ -148,34 +192,45 @@ final class MediaKeyMonitor {
         let flags = Int(data1 & 0x0000_FFFF)
 
         let keyState = (flags & 0xFF00) >> 8
-        let isDown = (keyState == 0x0A)
-        guard isDown else { return Unmanaged.passRetained(event) }
+        guard keyState == 0x0A else { return Unmanaged.passUnretained(event) }
 
         guard let mk = MediaKey(rawValue: keyCode) else {
-            return Unmanaged.passRetained(event)
+            return Unmanaged.passUnretained(event)
         }
 
-        let modifiers = nsEvent.modifierFlags
-        let handlingResult = handleMediaKey(mk, modifiers: modifiers)
+        return applyResult(handleMediaKey(mk, modifiers: nsEvent.modifierFlags), event: event)
+    }
 
-        switch handlingResult {
+    private func applyResult(_ result: MediaKeyHandlingResult, event: CGEvent) -> Unmanaged<CGEvent>? {
+        switch result {
         case .passThrough:
-            return Unmanaged.passRetained(event)
-        case let .consumed(didChange):
-            if !didChange {
-                mediaKeyPublisher.send(mk)
-            }
+            return Unmanaged.passUnretained(event)
+        case .consumed:
             return nil
         }
+    }
+
+    func handleMediaKeyForTesting(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
+        handleMediaKey(key, modifiers: modifiers)
     }
 
     private func handleMediaKey(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
         switch key {
         case .soundUp, .soundDown, .mute:
             let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
-            return volumeKeyController.handle(key, fineStep: fineStep)
+            let result = volumeKeyController.handle(key, fineStep: fineStep)
+            if case .consumed(didChange: false) = result {
+                HUDDisplayStateStore.shared.update(volumeMonitor.currentVolumeState.displayState)
+            }
+            return result
+
         case .brightnessUp, .brightnessDown:
-            return .passThrough
+            let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
+            let result = brightnessKeyController.handle(key, fineStep: fineStep)
+            if case .consumed = result {
+                HUDDisplayStateStore.shared.update(brightnessKeyController.currentState.displayState)
+            }
+            return result
         }
     }
 }

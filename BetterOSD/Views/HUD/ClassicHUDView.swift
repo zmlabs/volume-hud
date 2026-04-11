@@ -1,5 +1,5 @@
 //
-//  ClassicVolumeHUDView.swift
+//  ClassicHUDView.swift
 //  BetterOSD
 //
 //  Created by yu on 2025/9/23.
@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-struct ClassicVolumeHUDView: View {
-    let volumeState: VolumeState
+struct ClassicHUDView: View {
+    let displayState: HUDDisplayState
     let liquidGlassEnable: Bool
     let glassVariant: Int
 
     var body: some View {
         let content = VStack(spacing: 0) {
             VStack {
-                Image(systemName: volumeState.iconName)
+                Image(systemName: displayState.iconName)
                     .font(.system(size: 72, weight: .regular))
                     .foregroundStyle(.primary.opacity(liquidGlassEnable ? 0.6 : 1))
                     .contentTransition(
@@ -24,8 +24,8 @@ struct ClassicVolumeHUDView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            ClassicVolumeProgressBar(
-                volumeState: volumeState
+            ClassicHUDProgressBar(
+                displayState: displayState
             )
             .padding(.bottom, 16)
         }
@@ -43,32 +43,32 @@ struct ClassicVolumeHUDView: View {
     }
 }
 
-struct ClassicVolumeProgressBar: View {
-    let volumeState: VolumeState
+struct ClassicHUDProgressBar: View {
+    let displayState: HUDDisplayState
 
     private static let segmentCount = 16
 
     var body: some View {
         HStack(spacing: 1) {
             ForEach(0 ..< Self.segmentCount, id: \.self) { index in
-                VolumeSegment(
+                HUDSegment(
                     fillRatio: fillRatio(for: index),
-                    isActive: !volumeState.isMuted
+                    isActive: !displayState.isMuted
                 )
             }
         }
     }
 
     private func fillRatio(for index: Int) -> CGFloat {
-        guard !volumeState.isMuted else { return 0 }
-        return VolumeCalculation.segmentFillRatio(
+        guard !displayState.isMuted else { return 0 }
+        return HUDCalculation.segmentFillRatio(
             segmentIndex: index,
-            volume: volumeState.volume
+            volume: displayState.level
         )
     }
 }
 
-private struct VolumeSegment: View {
+private struct HUDSegment: View {
     let fillRatio: CGFloat
     let isActive: Bool
 
@@ -93,17 +93,16 @@ private struct VolumeSegment: View {
 
 #Preview {
     VStack(spacing: 30) {
-        // Display precise volume adjustment capabilities
         HStack(spacing: 20) {
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.15, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.37, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.68, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.1.fill", level: 0.15, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.2.fill", level: 0.37, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.2.fill", level: 0.68, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
         }
 
         HStack(spacing: 20) {
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.83, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.92, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
-            ClassicVolumeHUDView(volumeState: VolumeState(volume: 0.45, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.3.fill", level: 0.83, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.wave.3.fill", level: 0.92, isMuted: false), liquidGlassEnable: true, glassVariant: 0)
+            ClassicHUDView(displayState: HUDDisplayState(iconName: "speaker.slash.fill", level: 0.45, isMuted: true), liquidGlassEnable: true, glassVariant: 0)
         }
     }
     .padding(60)
