@@ -36,6 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
     }
 
     func applicationDidFinishLaunching(_: Notification) {
+        NSMenuItem.disableAutoIcons()
         _ = updaterController
 
         let currentShowInMenuBar = UserDefaults.standard.object(forKey: AppStorageKeys.showInMenuBar) as? Bool ?? true
@@ -119,11 +120,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegat
             let hostingView = NSHostingView(rootView: settingsView)
 
             settingsWindow = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 580, height: 580),
-                styleMask: [.titled, .closable],
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 560),
+                styleMask: [.titled, .closable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
+            settingsWindow?.titleVisibility = .hidden
+            settingsWindow?.toolbar = NSToolbar()
+            settingsWindow?.toolbarStyle = .unifiedCompact
             settingsWindow?.contentView = hostingView
             settingsWindow?.center()
             settingsWindow?.isReleasedWhenClosed = false

@@ -10,6 +10,53 @@ import Combine
 import LaunchAtLogin
 import SwiftUI
 
+enum SettingsPreviewType: String, CaseIterable, Identifiable {
+    case volume
+    case brightness
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .volume: NSLocalizedString("Volume", comment: "Volume")
+        case .brightness: NSLocalizedString("Brightness", comment: "Brightness")
+        }
+    }
+
+    var placeholderState: HUDDisplayState {
+        switch self {
+        case .volume:
+            HUDDisplayState(iconName: "speaker.wave.2.fill", level: 0.5, isMuted: false)
+        case .brightness:
+            HUDDisplayState(iconName: "sun.max.fill", level: 0.7, isMuted: false)
+        }
+    }
+}
+
+enum GlassVariantOption: Int, CaseIterable, Identifiable {
+    case regular = 0
+    case clear = 1
+    case dock = 2
+    case appIcons = 3
+    case notificationCenter = 9
+    case bubbles = 11
+    case focusBorder = 12
+
+    var id: Int { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .regular: "Regular"
+        case .clear: "Clear"
+        case .dock: "Dock"
+        case .appIcons: "AppIcons"
+        case .notificationCenter: "NotificationCenter"
+        case .bubbles: "Bubbles"
+        case .focusBorder: "FocusBorder"
+        }
+    }
+}
+
 struct SettingsView: View {
     @AppStorage(AppStorageKeys.hudStyle) private var hudStyle: HUDStyle = .modern
     @AppStorage(AppStorageKeys.showInMenuBar) private var showInMenuBar: Bool = true
@@ -17,90 +64,163 @@ struct SettingsView: View {
     @AppStorage(AppStorageKeys.bottomOffset) private var bottomOffset: Double = 120
     @AppStorage(AppStorageKeys.glassVariant) private var glassVariant: Int = 0
 
-    @State private var displayState = HUDDisplayState.defaultVolumePlaceholder
+    @State private var previewType: SettingsPreviewType = .volume
     @State private var accessibilityGranted = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Settings")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(24)
-
-            if !accessibilityGranted {
-                AccessibilityPermissionBanner {
-                    MediaKeyMonitor.shared.requestAccessibilityPermission()
-                    MediaKeyMonitor.shared.startAccessibilityPolling()
-                    refreshAccessibilityStatus()
+        ScrollView {
+            VStack(spacing: 20) {
+                if !accessibilityGranted {
+                    AccessibilityPermissionBanner {
+                        MediaKeyMonitor.shared.requestAccessibilityPermission()
+                        MediaKeyMonitor.shared.startAccessibilityPolling()
+                        refreshAccessibilityStatus()
+                    }
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-            }
 
-            VStack(spacing: 24) {
+                previewSection
                 appearanceSection
                 generalSection
             }
-            .padding(.horizontal, 24)
-
-            Spacer()
-            Divider()
-            footerView
+            .padding(24)
         }
-        .frame(width: 580)
-        .onAppear {
-            displayState = HUDDisplayStateStore.shared.current
-            refreshAccessibilityStatus()
+        .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
+        .safeAreaBar(edge: .bottom) {
+            footerBar
         }
-        .onReceive(HUDDisplayStateStore.shared.publisher.receive(on: RunLoop.main)) {
-            displayState = $0
-        }
+        .frame(width: 520)
+        .onAppear { refreshAccessibilityStatus() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
         }
     }
 
+    private var previewSection: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.gray.opacity(0.1))
+
+                previewHUD
+            }
+            .frame(height: 160)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Picker("Preview", selection: $previewType) {
+                ForEach(SettingsPreviewType.allCases) { type in
+                    Text(type.displayName).tag(type)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+        }
+    }
+
+    @ViewBuilder
+    private var previewHUD: some View {
+        let state = previewType.placeholderState
+        switch hudStyle {
+        case .classic:
+            ClassicHUDView(
+                displayState: state,
+                liquidGlassEnable: liquidGlassEnable,
+                glassVariant: glassVariant
+            )
+            .scaleEffect(0.72)
+        case .modern:
+            ModernHUDView(
+                displayState: state,
+                liquidGlassEnable: liquidGlassEnable,
+                glassVariant: glassVariant
+            )
+            .scaleEffect(0.85)
+        }
+    }
+
     private var appearanceSection: some View {
         SettingsSection(title: NSLocalizedString("Appearance", comment: "Appearance")) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 16) {
-                    ForEach(HUDStyle.allCases) { style in
-                        HUDStyleCard(
-                            style: style,
-                            isSelected: hudStyle == style,
-                            onSelect: {
-                                hudStyle = style
+            VStack(spacing: 0) {
+                SettingsRow {
+                    Text("HUD Style")
+                    Spacer()
+                    Picker("HUD Style", selection: $hudStyle) {
+                        ForEach(HUDStyle.allCases) { style in
+                            Text(style.displayName).tag(style)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                }
+
+                SettingsDivider()
+
+                SettingsRow {
+                    Text("Liquid Glass")
+                    Spacer()
+                    Toggle("", isOn: $liquidGlassEnable)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .onChange(of: liquidGlassEnable) { _, _ in
+                            HUDPreviewManager.shared.isPreviewActive = true
+                            HUDPreviewManager.shared.isPreviewActive = false
+                        }
+                }
+
+                if liquidGlassEnable {
+                    SettingsDivider()
+
+                    SettingsRow {
+                        Text("Glass Variant")
+                        Spacer()
+                        Picker("", selection: $glassVariant) {
+                            ForEach(GlassVariantOption.allCases) { option in
+                                Text(option.displayName).tag(option.rawValue)
                             }
-                        ) {
-                            previewForStyle(style)
+                        }
+                        .labelsHidden()
+                        .onChange(of: glassVariant) { _, _ in
+                            HUDPreviewManager.shared.isPreviewActive = true
+                            HUDPreviewManager.shared.isPreviewActive = false
                         }
                     }
                 }
-                .frame(height: 200)
-                .padding(8)
+
+                SettingsDivider()
+
+                SettingsRow {
+                    Text("Bottom Offset")
+                    Spacer()
+                    Slider(value: $bottomOffset, in: 50 ... 220, onEditingChanged: { editing in
+                        HUDPreviewManager.shared.isPreviewActive = editing
+                    })
+                    .frame(width: 160)
+                    .onChange(of: bottomOffset) { _, newValue in
+                        HUDPreviewManager.shared.bottomOffset = newValue
+                    }
+                }
             }
         }
     }
 
     private var generalSection: some View {
         SettingsSection(title: NSLocalizedString("General", comment: "General")) {
-            Group {
-                HStack {
+            VStack(spacing: 0) {
+                SettingsRow {
                     Text("Launch at Login")
-                        .font(.body)
-                        .foregroundStyle(.primary)
                     Spacer()
                     LaunchAtLogin.Toggle()
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
                 }
-                HStack {
+
+                SettingsDivider()
+
+                SettingsRow {
                     Text("Show in Menu Bar")
-                        .font(.body)
-                        .foregroundStyle(.primary)
                     Spacer()
-                    Toggle("Show in Menu Bar", isOn: $showInMenuBar)
+                    Toggle("", isOn: $showInMenuBar)
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
@@ -110,121 +230,31 @@ struct SettingsView: View {
                             }
                         }
                 }
-                HStack {
-                    Text("Liquid Glass Enable")
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Toggle("Liquid Glass Enable", isOn: $liquidGlassEnable)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .controlSize(.small)
-                        .onChange(of: liquidGlassEnable) { _, _ in
-                            HUDPreviewManager.shared.isPreviewActive = true
-                            HUDPreviewManager.shared.isPreviewActive = false
-                        }
-                }
-                HStack {
-                    Text("Bottom Offset")
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Slider(value: $bottomOffset, in: 50 ... 220, onEditingChanged: { editing in
-                        HUDPreviewManager.shared.isPreviewActive = editing
-                    })
-                    .frame(width: 150)
-                    .onChange(of: bottomOffset) { _, newValue in
-                        HUDPreviewManager.shared.bottomOffset = newValue
-                    }
-                }
-                if liquidGlassEnable {
-                    HStack {
-                        Text("Glass Variant")
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Picker("Glass Variant", selection: $glassVariant) {
-                            ForEach([0, 1, 3, 9, 11, 12], id: \.self) { value in
-                                Text("\(value)")
-                                    .tag(value)
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.automatic)
-                        .onChange(of: glassVariant) { _, _ in
-                            HUDPreviewManager.shared.isPreviewActive = true
-                            HUDPreviewManager.shared.isPreviewActive = false
-                        }
-                    }
-                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
     }
 
-    private var footerView: some View {
-        HStack {
-            HStack(spacing: 12) {
-                Link("Privacy", destination: URL(string: "https://zmlabs.app/volume-hud/privacy")!)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .underline()
-                Text("•")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Link("Terms", destination: URL(string: "https://zmlabs.app/volume-hud/terms")!)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .underline()
-            }
-            Spacer()
-            VStack(alignment: .trailing) {
-                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                HStack(spacing: 4) {
-                    Text("BetterOSD is an")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Link("open-source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .underline()
-                    Text("application")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
+    private var footerBar: some View {
+        HStack(spacing: 5) {
+            Link("Open Source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
+            Text("·")
+            Link("Privacy", destination: URL(string: "https://zmlabs.app/volume-hud/privacy")!)
+            Text("·")
+            Link("Terms", destination: URL(string: "https://zmlabs.app/volume-hud/terms")!)
+            Text("·")
+            Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .font(.caption)
+        .foregroundStyle(.secondary.opacity(0.5))
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
     }
 
     private func refreshAccessibilityStatus() {
         let trusted = MediaKeyMonitor.shared.hasAccessibilityPermission()
         accessibilityGranted = trusted
-
         if trusted {
             _ = MediaKeyMonitor.shared.start()
-        }
-    }
-
-    @ViewBuilder
-    private func previewForStyle(_ style: HUDStyle) -> some View {
-        switch style {
-        case .classic:
-            ClassicHUDView(
-                displayState: displayState,
-                liquidGlassEnable: liquidGlassEnable,
-                glassVariant: glassVariant
-            )
-        case .modern:
-            ModernHUDView(
-                displayState: displayState,
-                liquidGlassEnable: liquidGlassEnable,
-                glassVariant: glassVariant
-            )
         }
     }
 }
@@ -257,11 +287,11 @@ struct AccessibilityPermissionBanner: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color.orange.opacity(0.12))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(Color.orange.opacity(0.3), lineWidth: 1)
         )
     }
@@ -277,64 +307,44 @@ struct SettingsSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 4)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 4)
 
-            VStack(spacing: 0) {
-                content
-            }
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(.controlBackgroundColor))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 }
 
-struct HUDStyleCard<PreviewContent: View>: View {
-    let style: HUDStyle
-    let isSelected: Bool
-    let onSelect: () -> Void
-    let preview: PreviewContent
+struct SettingsRow<Content: View>: View {
+    let content: Content
 
-    init(
-        style: HUDStyle,
-        isSelected: Bool,
-        onSelect: @escaping () -> Void,
-        @ViewBuilder preview: () -> PreviewContent
-    ) {
-        self.style = style
-        self.isSelected = isSelected
-        self.onSelect = onSelect
-        self.preview = preview()
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
     }
 
     var body: some View {
-        Button(action: onSelect) {
-            VStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(.background)
-                    .padding()
-                    .overlay {
-                        preview
-                            .scaleEffect(0.7)
-                    }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(
-                                isSelected ? Color.accentColor : Color.clear,
-                                lineWidth: 2
-                            )
-                    }
-
-                Text(style.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-            }
-            .frame(width: 220)
+        HStack {
+            content
         }
-        .buttonStyle(.plain)
+        .font(.body)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+}
+
+struct SettingsDivider: View {
+    var body: some View {
+        Divider()
+            .padding(.leading, 16)
     }
 }
 
