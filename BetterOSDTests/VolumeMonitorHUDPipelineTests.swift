@@ -13,24 +13,69 @@ import Testing
 @MainActor
 struct VolumeMonitorHUDPipelineTests {
     @Test
-    func refreshStateUpdatesStore() {
+    func deviceChangeUpdatesStore() {
         let fakeController = FakeSystemAudioController()
+        fakeController.volumeAddress = makeVolumeAddress()
+        fakeController.muteAddress = makeMuteAddress()
+
         let monitor = VolumeMonitor(
             audioController: fakeController,
-            autoStart: false,
-            initialOutputDeviceID: 7,
-            initialVolumePropertyAddress: makeVolumeAddress(),
-            initialMutePropertyAddress: makeMuteAddress()
+            initialOutputDeviceID: 7
         )
+        monitor.seedOutputDeviceIDForTesting(7)
 
-        HUDDisplayStateStore.shared.bootstrap(with: .defaultVolumePlaceholder)
+        let placeholder = HUDDisplayState(iconName: "placeholder", level: 0, isMuted: false)
+        HUDDisplayStateStore.shared.bootstrap(with: placeholder)
 
-        fakeController.volume = 0.625
+        fakeController.volume = 0.3
         fakeController.isMuted = false
-
+        monitor.switchOutputDeviceForTesting(to: 13)
         monitor.refreshStateForTesting()
 
-        #expect(HUDDisplayStateStore.shared.current == HUDDisplayState(iconName: "speaker.wave.2.fill", level: 0.625, isMuted: false))
+        #expect(HUDDisplayStateStore.shared.current == HUDDisplayState(iconName: "speaker.wave.1.fill", level: 0.3, isMuted: false))
+    }
+
+    @Test
+    func sameDeviceDoesNotUpdateStore() {
+        let fakeController = FakeSystemAudioController()
+        fakeController.volumeAddress = makeVolumeAddress()
+        fakeController.muteAddress = makeMuteAddress()
+
+        let monitor = VolumeMonitor(
+            audioController: fakeController,
+            initialOutputDeviceID: 7
+        )
+        monitor.seedOutputDeviceIDForTesting(7)
+
+        let placeholder = HUDDisplayState(iconName: "placeholder", level: 0, isMuted: false)
+        HUDDisplayStateStore.shared.bootstrap(with: placeholder)
+
+        fakeController.volume = 0.75
+        fakeController.isMuted = true
+        monitor.refreshStateForTesting()
+
+        #expect(HUDDisplayStateStore.shared.current == placeholder)
+    }
+
+    @Test
+    func initialDeviceDiscoveryDoesNotUpdateStore() {
+        let fakeController = FakeSystemAudioController()
+        fakeController.volumeAddress = makeVolumeAddress()
+        fakeController.muteAddress = makeMuteAddress()
+
+        let monitor = VolumeMonitor(
+            audioController: fakeController,
+            initialOutputDeviceID: 9
+        )
+
+        let placeholder = HUDDisplayState(iconName: "placeholder", level: 0, isMuted: false)
+        HUDDisplayStateStore.shared.bootstrap(with: placeholder)
+
+        fakeController.volume = 0.4
+        fakeController.isMuted = false
+        monitor.refreshStateForTesting()
+
+        #expect(HUDDisplayStateStore.shared.current == placeholder)
     }
 
     private func makeVolumeAddress() -> AudioObjectPropertyAddress {

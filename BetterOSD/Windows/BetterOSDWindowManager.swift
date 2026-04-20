@@ -17,7 +17,8 @@ final class BetterOSDWindowManager {
     private var hideTask: Task<Void, Never>?
 
     init() {
-        HUDDisplayStateStore.shared.bootstrap(with: VolumeMonitor.shared.currentVolumeState.displayState)
+        HUDDisplayStateStore.shared.bootstrap(with: VolumeState.readCurrent(from: SystemAudioController.shared).displayState)
+        VolumeMonitor.shared.start()
         setupObservers()
     }
 

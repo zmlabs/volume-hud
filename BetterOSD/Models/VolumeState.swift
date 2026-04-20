@@ -20,16 +20,6 @@ struct VolumeState: Equatable {
         self.outputDeviceID = outputDeviceID
     }
 
-    /// Check if this state represents a volume/mute change that should trigger UI updates
-    func hasVolumeOrMuteChange(from previousState: VolumeState) -> Bool {
-        isMuted != previousState.isMuted || volume != previousState.volume
-    }
-
-    /// Check if the device changed
-    func hasDeviceChange(from previousState: VolumeState) -> Bool {
-        outputDeviceID != previousState.outputDeviceID
-    }
-
     /// Volume icon name based on current state
     var iconName: String {
         if isMuted { return "speaker.slash.fill" }
@@ -41,5 +31,25 @@ struct VolumeState: Equatable {
 
     var displayState: HUDDisplayState {
         HUDDisplayState(iconName: iconName, level: volume, isMuted: isMuted)
+    }
+
+    static func readCurrent(from controller: SystemAudioControlling) -> VolumeState {
+        guard let deviceID = controller.defaultOutputDeviceID() else {
+            return VolumeState()
+        }
+        return read(deviceID: deviceID, from: controller)
+    }
+
+    static func read(
+        deviceID: AudioDeviceID,
+        from controller: SystemAudioControlling,
+        fallbackVolume: Float = 0,
+        fallbackMuted: Bool = false
+    ) -> VolumeState {
+        let volume = controller.volumePropertyAddress(for: deviceID)
+            .flatMap { controller.getVolume(deviceID: deviceID, address: $0) } ?? fallbackVolume
+        let isMuted = controller.mutePropertyAddress(for: deviceID)
+            .flatMap { controller.getMute(deviceID: deviceID, address: $0) } ?? fallbackMuted
+        return VolumeState(volume: volume, isMuted: isMuted, outputDeviceID: deviceID)
     }
 }

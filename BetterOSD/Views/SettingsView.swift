@@ -103,7 +103,7 @@ struct SettingsView: View {
         VStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.gray.opacity(0.1))
+                    .fill(.black.opacity(0.15))
 
                 previewHUD
             }
@@ -241,10 +241,7 @@ struct SettingsView: View {
     private var footerBar: some View {
         HStack(spacing: 5) {
             Link("Open Source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
-            Text("·")
-            Link("Privacy", destination: URL(string: "https://zmlabs.app/volume-hud/privacy")!)
-            Text("·")
-            Link("Terms", destination: URL(string: "https://zmlabs.app/volume-hud/terms")!)
+                .underline()
             Text("·")
             Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
         }
