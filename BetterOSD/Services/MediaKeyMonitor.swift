@@ -31,7 +31,6 @@ final class MediaKeyMonitor {
     private var eventTapRunLoop: CFRunLoop?
     private let volumeKeyController: VolumeKeyHandling
     private let brightnessKeyController: BrightnessKeyHandling
-    private let volumeMonitor: VolumeMonitor
     private var accessibilityPollTask: Task<Void, Never>?
 
     private static let brightnessUpKeyCode: Int64 = 144
@@ -39,12 +38,10 @@ final class MediaKeyMonitor {
 
     init(
         volumeKeyController: VolumeKeyHandling = VolumeKeyController(),
-        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
-        volumeMonitor: VolumeMonitor = .shared
+        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController()
     ) {
         self.volumeKeyController = volumeKeyController
         self.brightnessKeyController = brightnessKeyController
-        self.volumeMonitor = volumeMonitor
     }
 
     func hasAccessibilityPermission() -> Bool {
@@ -215,17 +212,13 @@ final class MediaKeyMonitor {
     }
 
     private func handleMediaKey(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
+        let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
+
         switch key {
         case .soundUp, .soundDown, .mute:
-            let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
-            let result = volumeKeyController.handle(key, fineStep: fineStep)
-            if case .consumed(didChange: false) = result {
-                HUDDisplayStateStore.shared.update(volumeMonitor.currentVolumeState.displayState)
-            }
-            return result
+            return volumeKeyController.handle(key, fineStep: fineStep)
 
         case .brightnessUp, .brightnessDown:
-            let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
             let result = brightnessKeyController.handle(key, fineStep: fineStep)
             if case .consumed = result {
                 HUDDisplayStateStore.shared.update(brightnessKeyController.currentState.displayState)

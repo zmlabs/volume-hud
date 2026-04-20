@@ -18,8 +18,17 @@ protocol VolumeKeyHandling: AnyObject {
 }
 
 final class VolumeKeyController: VolumeKeyHandling {
-    private let audioController = SystemAudioController.shared
+    private let audioController: SystemAudioControlling
+    private let hudStore: HUDDisplayStateStore
     private var lastNonZeroVolumeByDevice: [AudioDeviceID: Float] = [:]
+
+    init(
+        audioController: SystemAudioControlling = SystemAudioController.shared,
+        hudStore: HUDDisplayStateStore = .shared
+    ) {
+        self.audioController = audioController
+        self.hudStore = hudStore
+    }
 
     func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
         guard key.isIntercepted else { return .passThrough }
@@ -37,20 +46,22 @@ final class VolumeKeyController: VolumeKeyHandling {
             lastNonZeroVolumeByDevice[deviceID] = currentVolume
         }
 
+        let result: MediaKeyHandlingResult
         switch key {
         case .mute:
             if let muteAddress {
-                return handleMuteToggle(
+                result = handleMuteToggle(
                     deviceID: deviceID,
                     volumeAddress: volumeAddress,
                     muteAddress: muteAddress,
                     currentVolume: currentVolume,
                     isMuted: isMuted
                 )
+            } else {
+                result = handleMuteFallback(deviceID: deviceID, volumeAddress: volumeAddress, currentVolume: currentVolume)
             }
-            return handleMuteFallback(deviceID: deviceID, volumeAddress: volumeAddress, currentVolume: currentVolume)
         case .soundUp, .soundDown:
-            return handleVolumeStep(
+            result = handleVolumeStep(
                 key: key,
                 deviceID: deviceID,
                 volumeAddress: volumeAddress,
@@ -62,6 +73,25 @@ final class VolumeKeyController: VolumeKeyHandling {
         case .brightnessUp, .brightnessDown:
             return .passThrough
         }
+
+        if case .consumed = result {
+            pushHUDState(deviceID: deviceID, fallbackVolume: currentVolume, fallbackMuted: isMuted)
+        }
+        return result
+    }
+
+    private func pushHUDState(
+        deviceID: AudioDeviceID,
+        fallbackVolume: Float,
+        fallbackMuted: Bool
+    ) {
+        let state = VolumeState.read(
+            deviceID: deviceID,
+            from: audioController,
+            fallbackVolume: fallbackVolume,
+            fallbackMuted: fallbackMuted
+        )
+        hudStore.update(state.displayState)
     }
 
     private func handleMuteToggle(

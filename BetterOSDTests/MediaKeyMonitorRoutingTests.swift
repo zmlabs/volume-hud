@@ -34,28 +34,20 @@ struct MediaKeyMonitorRoutingTests {
     }
 
     @Test
-    func volumeNoOpStillUpdatesStoreFromCurrentVolumeState() {
-        let fakeAudio = FakeSystemAudioController()
-        let volumeMonitor = VolumeMonitor(audioController: fakeAudio, autoStart: false)
-        volumeMonitor.seedStateForTesting(VolumeState(volume: 0.25, isMuted: false, outputDeviceID: 11))
-
+    func volumeKeyRoutesResultUnchanged() {
         let brightnessController = FakeBrightnessKeyHandler(
             result: .passThrough,
             currentState: BrightnessState(brightness: 0)
         )
-        let volumeController = FakeVolumeKeyHandler(result: .consumed(didChange: false))
+        let volumeController = FakeVolumeKeyHandler(result: .consumed(didChange: true))
         let monitor = MediaKeyMonitor(
             volumeKeyController: volumeController,
-            brightnessKeyController: brightnessController,
-            volumeMonitor: volumeMonitor
+            brightnessKeyController: brightnessController
         )
-
-        HUDDisplayStateStore.shared.bootstrap(with: .defaultVolumePlaceholder)
 
         let result = monitor.handleMediaKeyForTesting(.soundUp, modifiers: [])
 
-        #expect(result == .consumed(didChange: false))
-        #expect(HUDDisplayStateStore.shared.current == VolumeState(volume: 0.25, isMuted: false, outputDeviceID: 11).displayState)
+        #expect(result == .consumed(didChange: true))
     }
 }
 

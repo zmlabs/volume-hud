@@ -16,6 +16,10 @@ final class FakeSystemAudioController: SystemAudioControlling {
     var muteAddress: AudioObjectPropertyAddress?
     var volume: Float?
     var isMuted: Bool?
+    var setVolumeSucceeds = true
+    var setMuteSucceeds = true
+    var getVolumeCallCount = 0
+    var getVolumeFailsOnCall: Int?
 
     func defaultOutputDeviceID() -> AudioDeviceID? {
         defaultDeviceID
@@ -34,10 +38,26 @@ final class FakeSystemAudioController: SystemAudioControlling {
     }
 
     func getVolume(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Float? {
-        volume
+        getVolumeCallCount += 1
+        if getVolumeFailsOnCall == getVolumeCallCount {
+            return nil
+        }
+        return volume
     }
 
     func getMute(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool? {
         isMuted
+    }
+
+    func setVolume(_ newVolume: Float, deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool {
+        guard setVolumeSucceeds else { return false }
+        volume = max(0, min(1, newVolume))
+        return true
+    }
+
+    func setMute(_ muted: Bool, deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool {
+        guard setMuteSucceeds else { return false }
+        isMuted = muted
+        return true
     }
 }

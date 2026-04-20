@@ -15,6 +15,8 @@ protocol SystemAudioControlling: AnyObject {
     func mutePropertyAddress(for deviceID: AudioDeviceID) -> AudioObjectPropertyAddress?
     func getVolume(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Float?
     func getMute(deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool?
+    func setVolume(_ volume: Float, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool
+    func setMute(_ muted: Bool, deviceID: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool
 }
 
 final class SystemAudioController {
