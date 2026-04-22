@@ -136,11 +136,20 @@ extension SystemAudioControlling {
                 values = Array(repeating: snapshot.displayVolume, count: addresses.count)
             }
 
-            var didSetAnyValue = false
-            for (address, value) in zip(addresses, values) {
-                didSetAnyValue = setVolume(value, deviceID: deviceID, address: address) || didSetAnyValue
+            let currentValues = addresses.compactMap { getVolume(deviceID: deviceID, address: $0) }
+            guard currentValues.count == addresses.count else { return false }
+
+            var appliedWrites: [(AudioObjectPropertyAddress, Float)] = []
+            for ((address, value), previousValue) in zip(zip(addresses, values), currentValues) {
+                guard setVolume(value, deviceID: deviceID, address: address) else {
+                    for (writtenAddress, writtenValue) in appliedWrites.reversed() {
+                        _ = setVolume(writtenValue, deviceID: deviceID, address: writtenAddress)
+                    }
+                    return false
+                }
+                appliedWrites.append((address, previousValue))
             }
-            return didSetAnyValue
+            return true
         }
     }
 }

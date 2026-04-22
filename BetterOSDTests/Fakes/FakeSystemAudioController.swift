@@ -19,6 +19,7 @@ final class FakeSystemAudioController: SystemAudioControlling {
     var channelVolumes: [UInt32: Float] = [:]
     var isMuted: Bool?
     var setVolumeSucceeds = true
+    var failingVolumeElements: Set<UInt32> = []
     var setMuteSucceeds = true
     var getVolumeCallCount = 0
     var getVolumeFailsOnCall: Int?
@@ -60,6 +61,7 @@ final class FakeSystemAudioController: SystemAudioControlling {
 
     func setVolume(_ newVolume: Float, deviceID _: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
         guard setVolumeSucceeds else { return false }
+        guard failingVolumeElements.contains(address.mElement) == false else { return false }
         let clampedVolume = max(0, min(1, newVolume))
         if address.mElement == kAudioObjectPropertyElementMain {
             volume = clampedVolume

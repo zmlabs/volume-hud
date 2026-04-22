@@ -152,6 +152,21 @@ struct VolumeKeyControllerTests {
     }
 
     @Test
+    func soundUpRollsBackIndependentChannelUpdateWhenAnyChannelWriteFails() {
+        let fakeController = makeIndependentChannelFake(left: 0.5, right: 0.25, isMuted: false, hasMute: true)
+        fakeController.failingVolumeElements = [2]
+        let store = HUDDisplayStateStore(initialState: placeholder)
+        let controller = VolumeKeyController(audioController: fakeController, hudStore: store)
+
+        let result = controller.handle(.soundUp, fineStep: false)
+
+        #expect(result == .passThrough)
+        #expect(abs((fakeController.channelVolumes[1] ?? 0) - 0.5) < 0.0001)
+        #expect(abs((fakeController.channelVolumes[2] ?? 0) - 0.25) < 0.0001)
+        #expect(store.current == placeholder)
+    }
+
+    @Test
     func muteFallbackRestoresIndependentChannelVolumes() {
         let fakeController = makeIndependentChannelFake(left: 0.6, right: 0.3, isMuted: false, hasMute: false)
         let store = HUDDisplayStateStore(initialState: placeholder)
