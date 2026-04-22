@@ -133,6 +133,44 @@ struct VolumeKeyControllerTests {
         #expect(store.current.level == 0)
     }
 
+    @Test
+    func soundUpPreservesIndependentChannelBalance() {
+        let fakeController = makeIndependentChannelFake(left: 0.5, right: 0.25, isMuted: false, hasMute: true)
+        let store = HUDDisplayStateStore(initialState: placeholder)
+        let controller = VolumeKeyController(audioController: fakeController, hudStore: store)
+
+        let result = controller.handle(.soundUp, fineStep: false)
+
+        let left = fakeController.channelVolumes[1] ?? 0
+        let right = fakeController.channelVolumes[2] ?? 0
+
+        #expect(result == .consumed(didChange: true))
+        #expect(left > 0.5)
+        #expect(right > 0.25)
+        #expect(abs((left / right) - 2) < 0.0001)
+        #expect(store.current.level == left)
+    }
+
+    @Test
+    func muteFallbackRestoresIndependentChannelVolumes() {
+        let fakeController = makeIndependentChannelFake(left: 0.6, right: 0.3, isMuted: false, hasMute: false)
+        let store = HUDDisplayStateStore(initialState: placeholder)
+        let controller = VolumeKeyController(audioController: fakeController, hudStore: store)
+
+        let muteResult = controller.handle(.mute, fineStep: false)
+
+        #expect(muteResult == .consumed(didChange: true))
+        #expect(fakeController.channelVolumes[1] == 0)
+        #expect(fakeController.channelVolumes[2] == 0)
+
+        let unmuteResult = controller.handle(.mute, fineStep: false)
+
+        #expect(unmuteResult == .consumed(didChange: true))
+        #expect(abs((fakeController.channelVolumes[1] ?? 0) - 0.6) < 0.0001)
+        #expect(abs((fakeController.channelVolumes[2] ?? 0) - 0.3) < 0.0001)
+        #expect(store.current.level == 0.6)
+    }
+
     private let placeholder = HUDDisplayState(iconName: "placeholder", level: -1, isMuted: false)
 
     private func makeFake(volume: Float, isMuted: Bool) -> FakeSystemAudioController {
@@ -149,6 +187,41 @@ struct VolumeKeyControllerTests {
             mElement: kAudioObjectPropertyElementMain
         )
         fake.volume = volume
+        fake.isMuted = isMuted
+        return fake
+    }
+
+    private func makeIndependentChannelFake(
+        left: Float,
+        right: Float,
+        isMuted: Bool,
+        hasMute: Bool
+    ) -> FakeSystemAudioController {
+        let fake = FakeSystemAudioController()
+        fake.defaultDeviceID = 42
+        fake.channelVolumeAddresses = [
+            AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: kAudioObjectPropertyScopeOutput,
+                mElement: 1
+            ),
+            AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: kAudioObjectPropertyScopeOutput,
+                mElement: 2
+            ),
+        ]
+        if hasMute {
+            fake.muteAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyMute,
+                mScope: kAudioObjectPropertyScopeOutput,
+                mElement: kAudioObjectPropertyElementMain
+            )
+        }
+        fake.channelVolumes = [
+            1: left,
+            2: right,
+        ]
         fake.isMuted = isMuted
         return fake
     }

@@ -20,17 +20,17 @@ struct MediaKeyMonitorRoutingTests {
             currentState: BrightnessState(brightness: 0.75)
         )
         let volumeController = FakeVolumeKeyHandler(result: .passThrough)
+        let store = HUDDisplayStateStore(initialState: .defaultVolumePlaceholder)
         let monitor = MediaKeyMonitor(
             volumeKeyController: volumeController,
-            brightnessKeyController: brightnessController
+            brightnessKeyController: brightnessController,
+            hudStore: store
         )
-
-        HUDDisplayStateStore.shared.bootstrap(with: .defaultVolumePlaceholder)
 
         let result = monitor.handleMediaKeyForTesting(.brightnessUp, modifiers: [])
 
         #expect(result == .consumed(didChange: true))
-        #expect(HUDDisplayStateStore.shared.current == BrightnessState(brightness: 0.75).displayState)
+        #expect(store.current == BrightnessState(brightness: 0.75).displayState)
     }
 
     @Test

@@ -70,6 +70,7 @@ struct SettingsView: View {
 
     @State private var previewType: SettingsPreviewType = .volume
     @State private var accessibilityGranted = false
+    @State private var automaticallyDownloadsUpdates = false
 
     var body: some View {
         ScrollView {
@@ -85,6 +86,7 @@ struct SettingsView: View {
                 previewSection
                 appearanceSection
                 generalSection
+                updateSection
             }
             .padding(24)
         }
@@ -93,9 +95,13 @@ struct SettingsView: View {
             footerBar
         }
         .frame(width: 520)
-        .onAppear { refreshAccessibilityStatus() }
+        .onAppear {
+            refreshAccessibilityStatus()
+            refreshUpdateSettings()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
+            refreshUpdateSettings()
         }
     }
 
@@ -238,6 +244,25 @@ struct SettingsView: View {
         }
     }
 
+    private var updateSection: some View {
+        SettingsSection(title: NSLocalizedString("Updates", comment: "Updates")) {
+            VStack(spacing: 0) {
+                SettingsRow {
+                    Text("Automatically Install Updates")
+                    Spacer()
+                    Toggle("", isOn: $automaticallyDownloadsUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .onChange(of: automaticallyDownloadsUpdates) { _, newValue in
+                            appDelegate?.setAutomaticallyDownloadsUpdates(newValue)
+                            refreshUpdateSettings()
+                        }
+                }
+            }
+        }
+    }
+
     private var footerBar: some View {
         HStack(spacing: 5) {
             Link("Open Source", destination: URL(string: "https://github.com/zmlabs/better-osd")!)
@@ -251,12 +276,20 @@ struct SettingsView: View {
         .padding(.vertical, 10)
     }
 
+    private var appDelegate: AppDelegate? {
+        NSApplication.shared.delegate as? AppDelegate
+    }
+
     private func refreshAccessibilityStatus() {
         let trusted = MediaKeyMonitor.shared.hasAccessibilityPermission()
         accessibilityGranted = trusted
         if trusted {
             _ = MediaKeyMonitor.shared.start()
         }
+    }
+
+    private func refreshUpdateSettings() {
+        automaticallyDownloadsUpdates = appDelegate?.automaticallyDownloadsUpdates ?? false
     }
 }
 

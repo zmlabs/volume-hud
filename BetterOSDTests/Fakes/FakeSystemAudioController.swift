@@ -13,8 +13,10 @@ final class FakeSystemAudioController: SystemAudioControlling {
     var defaultDeviceID: AudioDeviceID?
     var deviceAlive = true
     var volumeAddress: AudioObjectPropertyAddress?
+    var channelVolumeAddresses: [AudioObjectPropertyAddress] = []
     var muteAddress: AudioObjectPropertyAddress?
     var volume: Float?
+    var channelVolumes: [UInt32: Float] = [:]
     var isMuted: Bool?
     var setVolumeSucceeds = true
     var setMuteSucceeds = true
@@ -33,25 +35,37 @@ final class FakeSystemAudioController: SystemAudioControlling {
         volumeAddress
     }
 
+    func channelVolumePropertyAddresses(for _: AudioDeviceID) -> [AudioObjectPropertyAddress] {
+        channelVolumeAddresses
+    }
+
     func mutePropertyAddress(for _: AudioDeviceID) -> AudioObjectPropertyAddress? {
         muteAddress
     }
 
-    func getVolume(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Float? {
+    func getVolume(deviceID _: AudioDeviceID, address: AudioObjectPropertyAddress) -> Float? {
         getVolumeCallCount += 1
         if getVolumeFailsOnCall == getVolumeCallCount {
             return nil
         }
-        return volume
+        if address.mElement == kAudioObjectPropertyElementMain {
+            return volume
+        }
+        return channelVolumes[address.mElement]
     }
 
     func getMute(deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool? {
         isMuted
     }
 
-    func setVolume(_ newVolume: Float, deviceID _: AudioDeviceID, address _: AudioObjectPropertyAddress) -> Bool {
+    func setVolume(_ newVolume: Float, deviceID _: AudioDeviceID, address: AudioObjectPropertyAddress) -> Bool {
         guard setVolumeSucceeds else { return false }
-        volume = max(0, min(1, newVolume))
+        let clampedVolume = max(0, min(1, newVolume))
+        if address.mElement == kAudioObjectPropertyElementMain {
+            volume = clampedVolume
+        } else {
+            channelVolumes[address.mElement] = clampedVolume
+        }
         return true
     }
 

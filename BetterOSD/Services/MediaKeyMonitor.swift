@@ -31,6 +31,7 @@ final class MediaKeyMonitor {
     private var eventTapRunLoop: CFRunLoop?
     private let volumeKeyController: VolumeKeyHandling
     private let brightnessKeyController: BrightnessKeyHandling
+    private let hudStore: HUDDisplayStateStore
     private var accessibilityPollTask: Task<Void, Never>?
 
     private static let brightnessUpKeyCode: Int64 = 144
@@ -38,10 +39,12 @@ final class MediaKeyMonitor {
 
     init(
         volumeKeyController: VolumeKeyHandling = VolumeKeyController(),
-        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController()
+        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
+        hudStore: HUDDisplayStateStore = .shared
     ) {
         self.volumeKeyController = volumeKeyController
         self.brightnessKeyController = brightnessKeyController
+        self.hudStore = hudStore
     }
 
     func hasAccessibilityPermission() -> Bool {
@@ -221,7 +224,7 @@ final class MediaKeyMonitor {
         case .brightnessUp, .brightnessDown:
             let result = brightnessKeyController.handle(key, fineStep: fineStep)
             if case .consumed = result {
-                HUDDisplayStateStore.shared.update(brightnessKeyController.currentState.displayState)
+                hudStore.update(brightnessKeyController.currentState.displayState)
             }
             return result
         }

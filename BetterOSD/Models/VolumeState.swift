@@ -46,8 +46,8 @@ struct VolumeState: Equatable {
         fallbackVolume: Float = 0,
         fallbackMuted: Bool = false
     ) -> VolumeState {
-        let volume = controller.volumePropertyAddress(for: deviceID)
-            .flatMap { controller.getVolume(deviceID: deviceID, address: $0) } ?? fallbackVolume
+        let volume = controller.volumeControl(for: deviceID)
+            .flatMap { controller.readVolumeSnapshot(deviceID: deviceID, control: $0)?.displayVolume } ?? fallbackVolume
         let isMuted = controller.mutePropertyAddress(for: deviceID)
             .flatMap { controller.getMute(deviceID: deviceID, address: $0) } ?? fallbackMuted
         return VolumeState(volume: volume, isMuted: isMuted, outputDeviceID: deviceID)
