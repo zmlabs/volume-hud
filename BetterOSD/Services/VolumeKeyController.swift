@@ -20,7 +20,7 @@ protocol VolumeKeyHandling: AnyObject {
 final class VolumeKeyController: VolumeKeyHandling {
     private let audioController: SystemAudioControlling
     private let hudStore: HUDDisplayStateStore
-    private var lastNonZeroVolumeByDevice: [AudioDeviceID: Float] = [:]
+    private var lastNonZeroVolumeByDevice: [AudioDeviceID: AudioDeviceVolumeSnapshot] = [:]
 
     init(
         audioController: SystemAudioControlling = SystemAudioController.shared,
@@ -33,17 +33,18 @@ final class VolumeKeyController: VolumeKeyHandling {
     func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
         guard key.isIntercepted else { return .passThrough }
         guard let deviceID = audioController.defaultOutputDeviceID(),
-              let volumeAddress = audioController.volumePropertyAddress(for: deviceID)
+              let volumeControl = audioController.volumeControl(for: deviceID)
         else {
             return .passThrough
         }
 
-        let currentVolume = audioController.getVolume(deviceID: deviceID, address: volumeAddress) ?? 0
+        let currentSnapshot = audioController.readVolumeSnapshot(deviceID: deviceID, control: volumeControl)
+        let currentVolume = currentSnapshot?.displayVolume ?? 0
         let muteAddress = audioController.mutePropertyAddress(for: deviceID)
         let isMuted = muteAddress.flatMap { audioController.getMute(deviceID: deviceID, address: $0) } ?? false
 
-        if currentVolume > 0 {
-            lastNonZeroVolumeByDevice[deviceID] = currentVolume
+        if let currentSnapshot, currentSnapshot.hasAudibleVolume {
+            lastNonZeroVolumeByDevice[deviceID] = currentSnapshot
         }
 
         let result: MediaKeyHandlingResult
@@ -52,20 +53,27 @@ final class VolumeKeyController: VolumeKeyHandling {
             if let muteAddress {
                 result = handleMuteToggle(
                     deviceID: deviceID,
-                    volumeAddress: volumeAddress,
+                    volumeControl: volumeControl,
                     muteAddress: muteAddress,
+                    currentSnapshot: currentSnapshot,
                     currentVolume: currentVolume,
                     isMuted: isMuted
                 )
             } else {
-                result = handleMuteFallback(deviceID: deviceID, volumeAddress: volumeAddress, currentVolume: currentVolume)
+                result = handleMuteFallback(
+                    deviceID: deviceID,
+                    volumeControl: volumeControl,
+                    currentSnapshot: currentSnapshot,
+                    currentVolume: currentVolume
+                )
             }
         case .soundUp, .soundDown:
             result = handleVolumeStep(
                 key: key,
                 deviceID: deviceID,
-                volumeAddress: volumeAddress,
+                volumeControl: volumeControl,
                 muteAddress: muteAddress,
+                currentSnapshot: currentSnapshot,
                 currentVolume: currentVolume,
                 isMuted: isMuted,
                 fineStep: fineStep
@@ -96,8 +104,9 @@ final class VolumeKeyController: VolumeKeyHandling {
 
     private func handleMuteToggle(
         deviceID: AudioDeviceID,
-        volumeAddress: AudioObjectPropertyAddress,
+        volumeControl: AudioDeviceVolumeControl,
         muteAddress: AudioObjectPropertyAddress,
+        currentSnapshot: AudioDeviceVolumeSnapshot?,
         currentVolume: Float,
         isMuted: Bool
     ) -> MediaKeyHandlingResult {
@@ -105,8 +114,8 @@ final class VolumeKeyController: VolumeKeyHandling {
         var handled = false
         var didChange = false
 
-        if targetMute, currentVolume > 0 {
-            lastNonZeroVolumeByDevice[deviceID] = currentVolume
+        if targetMute, let currentSnapshot, currentSnapshot.hasAudibleVolume {
+            lastNonZeroVolumeByDevice[deviceID] = currentSnapshot
         }
 
         let muteSuccess = audioController.setMute(targetMute, deviceID: deviceID, address: muteAddress)
@@ -114,12 +123,17 @@ final class VolumeKeyController: VolumeKeyHandling {
         didChange = didChange || (muteSuccess && targetMute != isMuted)
 
         if muteSuccess, !targetMute, currentVolume <= 0 {
-            let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? 0.25
-            let volumeSuccess = audioController.setVolume(restoreVolume, deviceID: deviceID, address: volumeAddress)
+            let restoredSnapshot = lastNonZeroVolumeByDevice[deviceID]
+                ?? audioController.projectedVolumeSnapshot(control: volumeControl, targetVolume: 0.25, from: nil)
+            let volumeSuccess = audioController.restoreVolume(
+                restoredSnapshot,
+                deviceID: deviceID,
+                control: volumeControl
+            )
             handled = handled || volumeSuccess
-            didChange = didChange || (volumeSuccess && restoreVolume != currentVolume)
+            didChange = didChange || (volumeSuccess && restoredSnapshot.displayVolume != currentVolume)
             if volumeSuccess {
-                lastNonZeroVolumeByDevice[deviceID] = restoreVolume
+                lastNonZeroVolumeByDevice[deviceID] = restoredSnapshot
             }
         }
 
@@ -129,8 +143,9 @@ final class VolumeKeyController: VolumeKeyHandling {
     private func handleVolumeStep(
         key: MediaKeyMonitor.MediaKey,
         deviceID: AudioDeviceID,
-        volumeAddress: AudioObjectPropertyAddress,
+        volumeControl: AudioDeviceVolumeControl,
         muteAddress: AudioObjectPropertyAddress?,
+        currentSnapshot: AudioDeviceVolumeSnapshot?,
         currentVolume: Float,
         isMuted: Bool,
         fineStep: Bool
@@ -149,12 +164,21 @@ final class VolumeKeyController: VolumeKeyHandling {
             didChange = didChange || (unmuteSuccess && isMuted)
         }
 
-        let volumeSuccess = audioController.setVolume(targetVolume, deviceID: deviceID, address: volumeAddress)
+        let volumeSuccess = audioController.setVolume(
+            targetVolume,
+            deviceID: deviceID,
+            control: volumeControl,
+            snapshot: currentSnapshot
+        )
         handled = handled || volumeSuccess
         didChange = didChange || (volumeSuccess && targetVolume != currentVolume)
 
         if volumeSuccess, targetVolume > 0 {
-            lastNonZeroVolumeByDevice[deviceID] = targetVolume
+            lastNonZeroVolumeByDevice[deviceID] = audioController.projectedVolumeSnapshot(
+                control: volumeControl,
+                targetVolume: targetVolume,
+                from: currentSnapshot
+            )
         }
 
         if let muteAddress, !isMuted, targetVolume == 0 {
@@ -168,18 +192,32 @@ final class VolumeKeyController: VolumeKeyHandling {
 
     private func handleMuteFallback(
         deviceID: AudioDeviceID,
-        volumeAddress: AudioObjectPropertyAddress,
+        volumeControl: AudioDeviceVolumeControl,
+        currentSnapshot: AudioDeviceVolumeSnapshot?,
         currentVolume: Float
     ) -> MediaKeyHandlingResult {
-        if currentVolume > 0 {
-            lastNonZeroVolumeByDevice[deviceID] = currentVolume
-            let success = audioController.setVolume(0, deviceID: deviceID, address: volumeAddress)
+        if let currentSnapshot, currentSnapshot.hasAudibleVolume {
+            lastNonZeroVolumeByDevice[deviceID] = currentSnapshot
+            let success = audioController.setVolume(
+                0,
+                deviceID: deviceID,
+                control: volumeControl,
+                snapshot: currentSnapshot
+            )
             return success ? .consumed(didChange: true) : .passThrough
         }
 
-        let restoreVolume = lastNonZeroVolumeByDevice[deviceID] ?? 0.25
-        let success = audioController.setVolume(restoreVolume, deviceID: deviceID, address: volumeAddress)
-        return success ? .consumed(didChange: restoreVolume != currentVolume) : .passThrough
+        let restoredSnapshot = lastNonZeroVolumeByDevice[deviceID]
+            ?? audioController.projectedVolumeSnapshot(control: volumeControl, targetVolume: 0.25, from: nil)
+        let success = audioController.restoreVolume(
+            restoredSnapshot,
+            deviceID: deviceID,
+            control: volumeControl
+        )
+        if success {
+            lastNonZeroVolumeByDevice[deviceID] = restoredSnapshot
+        }
+        return success ? .consumed(didChange: restoredSnapshot.displayVolume != currentVolume) : .passThrough
     }
 }
 

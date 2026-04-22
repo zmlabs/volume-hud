@@ -31,10 +31,11 @@ struct VolumeMonitorDeviceProbeTests {
         fakeController.isMuted = false
 
         let placeholder = HUDDisplayState(iconName: "placeholder", level: 0, isMuted: false)
-        HUDDisplayStateStore.shared.bootstrap(with: placeholder)
+        let store = HUDDisplayStateStore(initialState: placeholder)
 
         let monitor = VolumeMonitor(
             audioController: fakeController,
+            hudStore: store,
             initialOutputDeviceID: 42
         )
 
@@ -42,10 +43,10 @@ struct VolumeMonitorDeviceProbeTests {
 
         monitor.updateOutputDevice()
         await waitUntil {
-            HUDDisplayStateStore.shared.current != placeholder
+            store.current != placeholder
         }
 
-        #expect(HUDDisplayStateStore.shared.current == VolumeState.read(deviceID: 84, from: fakeController).displayState)
+        #expect(store.current == VolumeState.read(deviceID: 84, from: fakeController).displayState)
     }
 
     private func waitUntil(

@@ -20,17 +20,17 @@ struct MediaKeyMonitorRoutingTests {
             currentState: BrightnessState(brightness: 0.75)
         )
         let volumeController = FakeVolumeKeyHandler(result: .passThrough)
+        let store = HUDDisplayStateStore(initialState: .defaultVolumePlaceholder)
         let monitor = MediaKeyMonitor(
             volumeKeyController: volumeController,
-            brightnessKeyController: brightnessController
+            brightnessKeyController: brightnessController,
+            hudStore: store
         )
-
-        HUDDisplayStateStore.shared.bootstrap(with: .defaultVolumePlaceholder)
 
         let result = monitor.handleMediaKeyForTesting(.brightnessUp, modifiers: [])
 
         #expect(result == .consumed(didChange: true))
-        #expect(HUDDisplayStateStore.shared.current == BrightnessState(brightness: 0.75).displayState)
+        #expect(store.current == BrightnessState(brightness: 0.75).displayState)
     }
 
     @Test
@@ -48,6 +48,46 @@ struct MediaKeyMonitorRoutingTests {
         let result = monitor.handleMediaKeyForTesting(.soundUp, modifiers: [])
 
         #expect(result == .consumed(didChange: true))
+    }
+
+    @Test
+    func defaultVolumeControllerUsesInjectedHUDStore() {
+        let audioController = FakeSystemAudioController()
+        audioController.defaultDeviceID = 42
+        audioController.volumeAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyVolumeScalar,
+            mScope: kAudioObjectPropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        audioController.muteAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyMute,
+            mScope: kAudioObjectPropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        audioController.volume = 0.5
+        audioController.isMuted = false
+
+        let brightnessController = FakeBrightnessKeyHandler(
+            result: .passThrough,
+            currentState: BrightnessState(brightness: 0)
+        )
+        let customStore = HUDDisplayStateStore(initialState: .defaultVolumePlaceholder)
+        let sharedStore = HUDDisplayStateStore.shared
+        let originalSharedState = sharedStore.current
+        sharedStore.bootstrap(with: .defaultVolumePlaceholder)
+        defer { sharedStore.bootstrap(with: originalSharedState) }
+
+        let monitor = MediaKeyMonitor(
+            audioController: audioController,
+            brightnessKeyController: brightnessController,
+            hudStore: customStore
+        )
+
+        let result = monitor.handleMediaKeyForTesting(.soundUp, modifiers: [])
+
+        #expect(result == .consumed(didChange: true))
+        #expect(customStore.current != .defaultVolumePlaceholder)
+        #expect(sharedStore.current == .defaultVolumePlaceholder)
     }
 }
 
