@@ -37,8 +37,20 @@ final class MediaKeyMonitor {
     private static let brightnessUpKeyCode: Int64 = 144
     private static let brightnessDownKeyCode: Int64 = 145
 
+    convenience init(
+        audioController: SystemAudioControlling = SystemAudioController.shared,
+        brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
+        hudStore: HUDDisplayStateStore = .shared
+    ) {
+        self.init(
+            volumeKeyController: VolumeKeyController(audioController: audioController, hudStore: hudStore),
+            brightnessKeyController: brightnessKeyController,
+            hudStore: hudStore
+        )
+    }
+
     init(
-        volumeKeyController: VolumeKeyHandling = VolumeKeyController(),
+        volumeKeyController: VolumeKeyHandling,
         brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
         hudStore: HUDDisplayStateStore = .shared
     ) {
