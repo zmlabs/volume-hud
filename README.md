@@ -30,6 +30,9 @@ A custom on-screen display for volume, display brightness, and keyboard backligh
 2. Open the DMG and drag **BetterOSD.app** into **Applications**
 3. Launch — grant **Accessibility** permission when prompted
 
+> **This fork** ships an unsigned build (no Apple Developer certificate).
+> On first launch: right-click → **Open** → **Open**, or **System Settings → Privacy & Security → Open Anyway**.
+
 ---
 
 ## Settings
