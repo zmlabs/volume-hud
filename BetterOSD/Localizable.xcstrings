@@ -47,52 +47,6 @@
         }
       }
     },
-    "·": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "·"
-          }
-        }
-      }
-    },
     "Accessibility Permission Needed": {
       "localizations": {
         "de": {
@@ -123,6 +77,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "접근성 권한 필요"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужен Универсальный доступ"
           }
         },
         "zh-Hans": {
@@ -172,6 +132,12 @@
             "value": "모양"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оформление"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -218,6 +184,12 @@
             "value": "업데이트 자동 설치"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматически устанавливать обновления"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -262,6 +234,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "하단 오프셋"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отступ снизу"
           }
         },
         "zh-Hans": {
@@ -311,6 +289,12 @@
             "value": "밝기"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Яркость"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -321,6 +305,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "亮度"
+          }
+        }
+      }
+    },
+    "Capture Keyboard Backlight": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastaturbeleuchtung erfassen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturar retroiluminación del teclado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturer le rétroéclairage du clavier"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーボードバックライトをキャプチャ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키보드 백라이트 캡처"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перехват подсветки клавиатуры"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获键盘背光"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "擷取鍵盤背光"
           }
         }
       }
@@ -355,6 +391,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업데이트 확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить обновления"
           }
         },
         "zh-Hans": {
@@ -404,6 +446,12 @@
             "value": "클래식"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Классический"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -414,6 +462,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "經典"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "comment": "A button that clears the keyboard brightness key assignment.",
+      "isCommentAutoGenerated": true,
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сбросить"
           }
         }
       }
@@ -448,6 +508,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "BetterOSD가 미디어 키를 수신할 수 있도록 액세스를 허용하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешите доступ, чтобы BetterOSD мог прослушивать медиаклавиши."
           }
         },
         "zh-Hans": {
@@ -497,6 +563,12 @@
             "value": "일반"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основные"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -541,6 +613,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "유리 변형"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стиль стекла"
           }
         },
         "zh-Hans": {
@@ -603,6 +681,28 @@
         }
       }
     },
+    "Keyboard": {
+      "comment": "Keyboard Backlight",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Клавиатура"
+          }
+        }
+      }
+    },
+    "Keyboard Backlight": {
+      "comment": "Keyboard Backlight",
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подсветка клавиатуры"
+          }
+        }
+      }
+    },
     "Launch at Login": {
       "localizations": {
         "de": {
@@ -633,6 +733,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "로그인 시 시작"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запускать при входе"
           }
         },
         "zh-Hans": {
@@ -679,6 +785,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Liquid Glass"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жидкое стекло"
           }
         },
         "zh-Hans": {
@@ -728,6 +840,12 @@
             "value": "모던"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модерн"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -772,6 +890,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "설정 열기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки"
           }
         },
         "zh-Hans": {
@@ -820,6 +944,12 @@
             "value": "오픈 소스"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Source"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -864,6 +994,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미리보기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предпросмотр"
           }
         },
         "zh-Hans": {
@@ -912,6 +1048,12 @@
             "value": "종료"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выйти"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -922,6 +1064,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "結束"
+          }
+        }
+      }
+    },
+    "Remaps F5 and F6 from Dictation & Do Not Disturb to keyboard brightness. System assignments are restored automatically when disabled.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weist F5 und F6 von Diktat & Nicht stören zur Tastaturhelligkeit um. Systemzuweisungen werden beim Deaktivieren automatisch wiederhergestellt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reasigna F5 y F6 de Dictado y No molestar al brillo del teclado. Las asignaciones del sistema se restauran automáticamente al desactivar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réaffecte F5 et F6 de Dictée & Ne pas déranger à la luminosité du clavier. Les affectations système sont restaurées automatiquement à la désactivation."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F5とF6を音声入力・集中モードからキーボード輝度に再割り当てします。無効時にはシステムの割り当てが自動的に復元されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F5와 F6를 받아쓰기 및 방해 금지에서 키보드 밝기로 재할당합니다. 비활성화 시 시스템 할당이 자동으로 복원됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переназначает F5 и F6 с Диктовки и «Не беспокоить» на регулировку подсветки клавиатуры. При отключении системные назначения восстанавливаются автоматически."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 F5 和 F6 从听写和勿扰重新映射到键盘亮度。禁用时自动恢复系统按键分配。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將 F5 和 F6 從聽寫和勿擾重新對應到鍵盤亮度。停用時自動還原系統按鍵分配。"
           }
         }
       }
@@ -956,6 +1150,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "설정"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
           }
         },
         "zh-Hans": {
@@ -1004,6 +1204,12 @@
             "value": "메뉴 막대에 표시"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать в строке меню"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -1048,6 +1254,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업데이트 사용 가능"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступно обновление"
           }
         },
         "zh-Hans": {
@@ -1097,6 +1309,12 @@
             "value": "업데이트"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновления"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -1111,48 +1329,54 @@
         }
       }
     },
-    "v%@": {
+    "Uses Command+F1 and Command+F2. No changes to system key assignments.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "Verwendet Command+F1 und Command+F2. Keine Änderungen an Systemtastenbelegungen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "Usa Command+F1 y Command+F2. Sin cambios en las asignaciones de teclas del sistema."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "Utilise Command+F1 et Command+F2. Aucun changement des affectations de touches système."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "Command+F1とCommand+F2を使用します。システムキー割り当ての変更はありません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "Command+F1 및 Command+F2를 사용합니다. 시스템 키 할당 변경 없음."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использует Command+F1 и Command+F2. Системные назначения клавиш не меняются."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "使用 Command+F1 和 Command+F2。不更改系统按键分配。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "v%@"
+            "value": "使用 Command+F1 和 Command+F2。不更改系統按鍵分配。"
           }
         }
       }
@@ -1187,6 +1411,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "버전 %@을(를) 이제 사용할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Версия %@ доступна."
           }
         },
         "zh-Hans": {
@@ -1236,6 +1466,12 @@
             "value": "볼륨"
           }
         },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Громкость"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -1246,6 +1482,104 @@
           "stringUnit": {
             "state": "translated",
             "value": "音量"
+          }
+        }
+      }
+    },
+    "v%@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v%@"
+          }
+        }
+      }
+    },
+    "·": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
           }
         }
       }
