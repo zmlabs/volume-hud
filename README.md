@@ -26,12 +26,16 @@ A custom on-screen display for volume, display brightness, and keyboard backligh
 
 ## Download
 
-1. Download the latest **BetterOSD-arm64.dmg**: [Download](https://github.com/zmlabs/better-osd/releases/latest/download/BetterOSD-arm64.dmg)
-2. Open the DMG and drag **BetterOSD.app** into **Applications**
-3. Launch — grant **Accessibility** permission when prompted
+| | Version | Signed |
+|---|---|---|
+| **This fork** (+ keyboard backlight) | [v3.3.0](https://github.com/0x3654/better-osd/releases/latest/download/BetterOSD-arm64.dmg) | ✗ no certificate |
+| **Official release** | [v3.2.0](https://github.com/zmlabs/better-osd/releases/latest/download/BetterOSD-arm64.dmg) | ✓ notarized |
 
-> **This fork** ships an unsigned build (no Apple Developer certificate).
-> On first launch: right-click → **Open** → **Open**, or **System Settings → Privacy & Security → Open Anyway**.
+1. Open the DMG and drag **BetterOSD.app** into **Applications**
+2. Launch — grant **Accessibility** permission when prompted
+
+> **Unsigned build note:** on first launch macOS will block the app.
+> Right-click → **Open** → **Open**, or go to **System Settings → Privacy & Security → Open Anyway**.
 
 ---
 
