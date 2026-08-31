@@ -40,6 +40,83 @@ struct VolumeKeyControllerTests {
     }
 
     @Test
+    func soundUpPlaysVolumeFeedback() {
+        let fakeController = makeFake(volume: 0.5, isMuted: false)
+        let feedback = FakeVolumeFeedbackPlayer()
+        let controller = VolumeKeyController(
+            audioController: fakeController,
+            hudStore: HUDDisplayStateStore(initialState: placeholder),
+            feedbackPlayer: feedback
+        )
+
+        _ = controller.handle(.soundUp, fineStep: false)
+
+        #expect(feedback.playCount == 1)
+    }
+
+    @Test
+    func soundUpFromMutedPlaysVolumeFeedback() {
+        let fakeController = makeFake(volume: 0.5, isMuted: true)
+        let feedback = FakeVolumeFeedbackPlayer()
+        let controller = VolumeKeyController(
+            audioController: fakeController,
+            hudStore: HUDDisplayStateStore(initialState: placeholder),
+            feedbackPlayer: feedback
+        )
+
+        _ = controller.handle(.soundUp, fineStep: false)
+
+        #expect(feedback.playCount == 1)
+    }
+
+    @Test
+    func soundDownToZeroDoesNotPlayVolumeFeedback() {
+        let oneStep = 1.0 / Float(HUDCalculation.standardSteps)
+        let fakeController = makeFake(volume: oneStep, isMuted: false)
+        let feedback = FakeVolumeFeedbackPlayer()
+        let controller = VolumeKeyController(
+            audioController: fakeController,
+            hudStore: HUDDisplayStateStore(initialState: placeholder),
+            feedbackPlayer: feedback
+        )
+
+        _ = controller.handle(.soundDown, fineStep: false)
+
+        #expect(fakeController.volume == 0)
+        #expect(feedback.playCount == 0)
+    }
+
+    @Test
+    func soundUpAtCeilingDoesNotPlayVolumeFeedback() {
+        let fakeController = makeFake(volume: 1.0, isMuted: false)
+        let feedback = FakeVolumeFeedbackPlayer()
+        let controller = VolumeKeyController(
+            audioController: fakeController,
+            hudStore: HUDDisplayStateStore(initialState: placeholder),
+            feedbackPlayer: feedback
+        )
+
+        _ = controller.handle(.soundUp, fineStep: false)
+
+        #expect(feedback.playCount == 0)
+    }
+
+    @Test
+    func muteToggleDoesNotPlayVolumeFeedback() {
+        let fakeController = makeFake(volume: 0.5, isMuted: false)
+        let feedback = FakeVolumeFeedbackPlayer()
+        let controller = VolumeKeyController(
+            audioController: fakeController,
+            hudStore: HUDDisplayStateStore(initialState: placeholder),
+            feedbackPlayer: feedback
+        )
+
+        _ = controller.handle(.mute, fineStep: false)
+
+        #expect(feedback.playCount == 0)
+    }
+
+    @Test
     func muteTogglePushesMutedState() {
         let fakeController = makeFake(volume: 0.5, isMuted: false)
         let store = HUDDisplayStateStore(initialState: placeholder)
