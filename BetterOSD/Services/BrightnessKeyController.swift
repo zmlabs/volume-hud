@@ -11,7 +11,7 @@ final class BrightnessKeyController {
     private let displayController: DisplayServicesBrightnessControlling
     private(set) var currentState = BrightnessState(brightness: 0)
 
-    init(displayController: DisplayServicesBrightnessControlling = DisplayServicesBrightnessClient()) {
+    init(displayController: DisplayServicesBrightnessControlling = CompositeBrightnessClient()) {
         self.displayController = displayController
     }
 
