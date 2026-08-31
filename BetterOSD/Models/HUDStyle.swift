@@ -34,4 +34,7 @@ enum AppStorageKeys {
     static let bottomOffset = "bottomOffset"
     static let glassVariant = "glassVariant"
     static let accessibilityPrompted = "accessibilityPrompted"
+
+    // Per-display DDC brightness cache ("ddcBrightness.<vendor>:<model>:<serial>")
+    static let ddcBrightnessCachePrefix = "ddcBrightness."
 }
