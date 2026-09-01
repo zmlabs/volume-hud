@@ -17,7 +17,9 @@ import AudioToolbox
 import Foundation
 
 protocol VolumeFeedbackPlaying: AnyObject {
-    func playVolumeFeedback()
+    /// `invert` mirrors the classic Shift-key trick: temporarily flip the
+    /// system "Play feedback when volume is changed" setting for this press.
+    func playVolumeFeedback(invert: Bool)
 }
 
 final class VolumeFeedbackSoundPlayer: VolumeFeedbackPlaying {
@@ -42,10 +44,11 @@ final class VolumeFeedbackSoundPlayer: VolumeFeedbackPlaying {
         }
     }
 
-    func playVolumeFeedback() {
+    func playVolumeFeedback(invert: Bool) {
         // Mirrors System Settings → Sound → "Play feedback when volume is
         // changed". Unset means on, which is the macOS default.
-        guard preferences.object(forKey: "com.apple.sound.beep.feedback") as? Bool ?? true else { return }
+        let settingEnabled = preferences.object(forKey: "com.apple.sound.beep.feedback") as? Bool ?? true
+        guard settingEnabled != invert else { return }
         loadSystemSound()
         if let systemSoundID {
             AudioServicesPlaySystemSound(systemSoundID)

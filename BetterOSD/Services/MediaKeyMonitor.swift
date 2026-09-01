@@ -11,6 +11,7 @@ import ApplicationServices
 protocol BrightnessKeyHandling: AnyObject {
     var currentState: BrightnessState { get }
     func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult
+    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool, targetDisplayID: CGDirectDisplayID) -> MediaKeyHandlingResult
 }
 
 extension BrightnessKeyController: BrightnessKeyHandling {}
@@ -52,6 +53,11 @@ final class MediaKeyMonitor {
     private let brightnessKeyController: BrightnessKeyHandling
     private let keyboardBacklightController: KeyboardBacklightKeyHandling  // added
     private let hudStore: HUDDisplayStateStore
+    // Injected so unit tests can assert the classic ⌥ shortcut without
+    // actually opening System Settings.
+    private let openSettingsPane: (URL) -> Void
+    // Resolves the ⇧+brightness target — the display under the pointer.
+    private let displayUnderCursor: () -> CGDirectDisplayID?
     private var accessibilityPollTask: Task<Void, Never>?
     // Set by startRecording(); next systemDefined key consumed and its NX code forwarded (added).
     private var recordingCallback: ((Int) -> Void)?
@@ -85,12 +91,16 @@ final class MediaKeyMonitor {
         volumeKeyController: VolumeKeyHandling,
         brightnessKeyController: BrightnessKeyHandling = BrightnessKeyController(),
         keyboardBacklightController: KeyboardBacklightKeyHandling = KeyboardBacklightKeyController(),
-        hudStore: HUDDisplayStateStore = .shared
+        hudStore: HUDDisplayStateStore = .shared,
+        openSettingsPane: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
+        displayUnderCursor: @escaping () -> CGDirectDisplayID? = { MediaKeyMonitor.cursorDisplayID() }
     ) {
         self.volumeKeyController = volumeKeyController
         self.brightnessKeyController = brightnessKeyController
         self.keyboardBacklightController = keyboardBacklightController
         self.hudStore = hudStore
+        self.openSettingsPane = openSettingsPane
+        self.displayUnderCursor = displayUnderCursor
         // Keyboard backlight: prime the cache and keep it fresh (added).
         reloadBacklightCache()
         defaultsObserver = NotificationCenter.default.addObserver(
@@ -349,6 +359,18 @@ final class MediaKeyMonitor {
         recordingCallback = nil
     }
 
+    // MARK: - Cursor display resolution
+
+    /// The display the pointer currently sits on — the ⇧+brightness target.
+    static func cursorDisplayID() -> CGDirectDisplayID? {
+        let location = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first { NSPointInRect(location, $0.frame) }
+        guard let id = screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
+            return nil
+        }
+        return id
+    }
+
     // MARK: - Testing
 
     func handleMediaKeyForTesting(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
@@ -356,13 +378,32 @@ final class MediaKeyMonitor {
     }
 
     private func handleMediaKey(_ key: MediaKey, modifiers: NSEvent.ModifierFlags) -> MediaKeyHandlingResult {
+        // Classic macOS: bare ⌥ + a media key opens the matching settings
+        // pane instead of adjusting anything. ⇧⌥ keeps fine-stepping.
+        if modifiers.contains(.option), !modifiers.contains(.shift), let pane = key.settingsPaneURL {
+            openSettingsPane(pane)
+            return .consumed(didChange: false)
+        }
+
         let fineStep = modifiers.contains(.shift) && modifiers.contains(.option)
+        // The setting-flip trick belongs to pure ⇧ only; ⇧⌥ is the fine-step
+        // gesture and the pop behaves as if no modifier were held.
+        let invertFeedback = modifiers.contains(.shift) && !modifiers.contains(.option)
 
         switch key {
         case .soundUp, .soundDown, .mute:
-            return volumeKeyController.handle(key, fineStep: fineStep)
+            return volumeKeyController.handle(key, fineStep: fineStep, invertFeedback: invertFeedback)
 
         case .brightnessUp, .brightnessDown:
+            // ⇧+brightness adjusts only the display under the pointer — the
+            // classic per-display trick. ⇧⌥ (fine step) still sweeps all.
+            if modifiers.contains(.shift), !modifiers.contains(.option), let target = displayUnderCursor() {
+                let result = brightnessKeyController.handle(key, fineStep: fineStep, targetDisplayID: target)
+                if case .consumed = result {
+                    hudStore.update(brightnessKeyController.currentState.displayState, onDisplay: target)
+                }
+                return result
+            }
             let result = brightnessKeyController.handle(key, fineStep: fineStep)
             if case .consumed = result {
                 hudStore.update(brightnessKeyController.currentState.displayState)
@@ -376,6 +417,24 @@ final class MediaKeyMonitor {
                 hudStore.update(keyboardBacklightController.currentState.displayState)
             }
             return result
+        }
+    }
+}
+
+extension MediaKeyMonitor.MediaKey {
+    /// System Settings pane the classic bare-⌥ shortcut opens. Keyboard
+    /// backlight has no classic ⌥ behavior (its binding already uses ⌘),
+    /// so it returns nil and keeps adjusting.
+    var settingsPaneURL: URL? {
+        switch self {
+        case .soundUp, .soundDown, .mute:
+            // macOS 26 dropped the old "-extension" suffix form — it silently
+            // falls back to the main Settings window.
+            URL(string: "x-apple.systempreferences:com.apple.Sound-Settings.extension")
+        case .brightnessUp, .brightnessDown:
+            URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension")
+        case .keyboardBrightnessUp, .keyboardBrightnessDown:
+            nil
         }
     }
 }

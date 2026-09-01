@@ -8,8 +8,10 @@
 @MainActor
 final class FakeVolumeFeedbackPlayer: VolumeFeedbackPlaying {
     private(set) var playCount = 0
+    private(set) var lastInvert: Bool?
 
-    func playVolumeFeedback() {
+    func playVolumeFeedback(invert: Bool) {
         playCount += 1
+        lastInvert = invert
     }
 }

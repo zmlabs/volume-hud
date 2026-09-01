@@ -70,8 +70,9 @@ class BetterOSDWindow: NSPanel {
         hidesOnDeactivate = false
     }
 
-    func updatePosition() {
-        guard let screen = NSScreen.main else { return }
+    func updatePosition(on displayID: CGDirectDisplayID? = nil) {
+        let screen = displayID.flatMap(Self.screen(for:)) ?? NSScreen.main
+        guard let screen else { return }
 
         let screenFrame = screen.frame
         let bottomOffset = (UserDefaults.standard.object(forKey: AppStorageKeys.bottomOffset) as? Double) ?? 120
@@ -80,6 +81,13 @@ class BetterOSDWindow: NSPanel {
         let y = screenFrame.minY + bottomOffset
 
         setFrame(NSRect(x: x, y: y, width: Self.windowWidth, height: Self.windowHeight), display: false)
+    }
+
+    /// Maps a CGDirectDisplayID (the ⇧+brightness target) to its NSScreen.
+    private static func screen(for displayID: CGDirectDisplayID) -> NSScreen? {
+        NSScreen.screens.first {
+            ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == displayID
+        }
     }
 
     private func setupContent() {
@@ -91,8 +99,8 @@ class BetterOSDWindow: NSPanel {
         contentView = hostingView
     }
 
-    func showWithAnimation() {
-        updatePosition()
+    func showWithAnimation(on displayID: CGDirectDisplayID? = nil) {
+        updatePosition(on: displayID)
 
         alphaValue = 0.0
         orderFrontRegardless()

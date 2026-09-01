@@ -20,6 +20,7 @@
 //  the CGEventTap on the main run loop). DDC I/O includes ~10 ms pacing sleeps.
 //
 
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Darwin
@@ -44,38 +45,88 @@ typealias DDCTransportProvider = (CGDirectDisplayID) -> DDCI2CTransport?
 /// Picks the external display to control. Injectable for tests.
 typealias DDCDisplayCandidateProvider = () -> (displayID: CGDirectDisplayID, displayKey: String)?
 
+/// Applies (or, with factor 1, removes) software gamma dimming for one
+/// display. Injectable so unit tests can fake the gamma tables.
+typealias GammaDimmingApplier = (CGDirectDisplayID, Float) -> Void
+
 // MARK: - Client
 
-final class DDCBrightnessClient: DisplayServicesBrightnessControlling {
+final class DDCBrightnessClient: DisplayServicesBrightnessControlling, TargetedBrightnessControlling {
     /// Assumed brightness when nothing is cached and the display won't answer
     /// reads. The very first key press steps from here; every successful write
     /// afterwards re-seeds the cache with the real value.
     private static let assumedBrightness: Float = 0.75
     private static let vcpLuminance: UInt8 = 0x10
 
+    /// DDC 0 is not "off": panels clamp their backlight at a floor (the Dell
+    /// this was field-tested on still glows at ~25%). Below this point the
+    /// write pins DDC at 0 and the rest of the range is covered by software
+    /// gamma dimming — the same trick MonitorControl uses — so brightness 0
+    /// is truly black.
+    private static let softwareDimmingFloor: Float = 0.25
+
     private let transportProvider: DDCTransportProvider
     private let displayCandidateProvider: DDCDisplayCandidateProvider
     private let defaults: UserDefaults
+    private let gammaDimming: GammaDimmingApplier
 
     private var cachedTransport: DDCI2CTransport?
     private var cachedDisplayID: CGDirectDisplayID?
     private var cachedBrightness: Float?
+    /// Displays currently dimmed via gamma tables, so we restore them once
+    /// (not on every above-floor write) and on termination.
+    private var softwareDimmedDisplays: Set<CGDirectDisplayID> = []
+    private var terminationObserver: (any NSObjectProtocol)?
 
     init(
         transportProvider: @escaping DDCTransportProvider = IOKitDDCTransport.resolve,
         displayCandidateProvider: @escaping DDCDisplayCandidateProvider = DDCBrightnessClient.externalDisplayCandidate,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        gammaDimming: @escaping GammaDimmingApplier = DDCBrightnessClient.applyGammaDimming
     ) {
         self.transportProvider = transportProvider
         self.displayCandidateProvider = displayCandidateProvider
         self.defaults = defaults
+        self.gammaDimming = gammaDimming
+
+        terminationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.restoreGammaForTermination()
+            }
+        }
     }
 
     func currentBrightness() -> Float? {
         guard let (displayID, key) = displayCandidateProvider() else {
             return nil
         }
+        return currentBrightness(displayID: displayID, displayKey: key)
+    }
 
+    func setBrightness(_ brightness: Float) -> Bool {
+        guard let (displayID, key) = displayCandidateProvider() else {
+            return false
+        }
+        return setBrightness(brightness, displayID: displayID, displayKey: key)
+    }
+
+    // MARK: - Per-display control (⇧+brightness path)
+
+    func currentBrightness(ofDisplay displayID: CGDirectDisplayID) -> Float? {
+        currentBrightness(displayID: displayID, displayKey: Self.displayKey(for: displayID))
+    }
+
+    func setBrightness(_ brightness: Float, ofDisplay displayID: CGDirectDisplayID) -> Bool {
+        setBrightness(brightness, displayID: displayID, displayKey: Self.displayKey(for: displayID))
+    }
+
+    // MARK: - Shared read/write
+
+    private func currentBrightness(displayID: CGDirectDisplayID, displayKey key: String) -> Float? {
         if let cached = storedBrightness(for: key, displayID: displayID) {
             return cached
         }
@@ -83,7 +134,10 @@ final class DDCBrightnessClient: DisplayServicesBrightnessControlling {
         guard let transport = transport(for: displayID) else { return nil }
 
         if let read = transport.lastReadLuminance, read.max > 0 {
-            let normalized = max(0, min(1, Float(read.current) / Float(read.max)))
+            // Invert the software-dimming split: the panel's DDC range only
+            // covers [floor … 1] of our brightness domain.
+            let raw = max(0, min(1, Float(read.current) / Float(read.max)))
+            let normalized = Self.softwareDimmingFloor + raw * (1 - Self.softwareDimmingFloor)
             cache(normalized, for: key, displayID: displayID)
             return normalized
         }
@@ -95,24 +149,65 @@ final class DDCBrightnessClient: DisplayServicesBrightnessControlling {
         return Self.assumedBrightness
     }
 
-    func setBrightness(_ brightness: Float) -> Bool {
-        guard let (displayID, key) = displayCandidateProvider(),
-              let transport = transport(for: displayID)
-        else {
+    private func setBrightness(_ brightness: Float, displayID: CGDirectDisplayID, displayKey key: String) -> Bool {
+        guard let transport = transport(for: displayID) else {
             return false
         }
 
         let clamped = max(0, min(1, brightness))
-        let maxValue = transport.lastReadLuminance?.max ?? 100
-        let value = UInt16((Float(maxValue) * clamped).rounded())
+        let maxValue = Float(transport.lastReadLuminance?.max ?? 100)
+
+        // Above the floor DDC covers the range. Below it DDC pins at 0 (the
+        // panel's backlight floor) and the gamma tables dim the content the
+        // rest of the way to true black.
+        let hardwareFraction: Float
+        var gammaFactor: Float?
+        if clamped >= Self.softwareDimmingFloor {
+            hardwareFraction = (clamped - Self.softwareDimmingFloor) / (1 - Self.softwareDimmingFloor)
+        } else {
+            hardwareFraction = 0
+            gammaFactor = clamped / Self.softwareDimmingFloor
+        }
+        let value = UInt16((maxValue * hardwareFraction).rounded())
 
         guard transport.write(value: value) else {
             invalidateTransport()
             return false
         }
 
+        if let gammaFactor {
+            gammaDimming(displayID, gammaFactor)
+            softwareDimmedDisplays.insert(displayID)
+        } else if softwareDimmedDisplays.remove(displayID) != nil {
+            gammaDimming(displayID, 1)
+        }
+
         cache(clamped, for: key, displayID: displayID)
         return true
+    }
+
+    // MARK: - Software dimming
+
+    /// Leaving the gamma tables dimmed after quit would keep the screen dark
+    /// content-wise, so restore every display we touched on the way out.
+    private func restoreGammaForTermination() {
+        for displayID in softwareDimmedDisplays {
+            gammaDimming(displayID, 1)
+        }
+        softwareDimmedDisplays.removeAll()
+    }
+
+    /// Scales the gamma tables linearly: out = factor × in. Factor 1 is the
+    /// identity restore (same tradeoff as f.lux/MonitorControl: while dimmed,
+    /// custom color profiles are overridden).
+    nonisolated private static func applyGammaDimming(displayID: CGDirectDisplayID, factor: Float) {
+        let clamped = CGGammaValue(max(0, min(1, factor)))
+        CGSetDisplayTransferByFormula(
+            displayID,
+            0, clamped, 1,
+            0, clamped, 1,
+            0, clamped, 1
+        )
     }
 
     // MARK: - Transport caching
@@ -177,8 +272,12 @@ final class DDCBrightnessClient: DisplayServicesBrightnessControlling {
             : displays.first { CGDisplayIsBuiltin($0) == 0 }
 
         guard let id = candidate else { return nil }
-        let key = "\(CGDisplayVendorNumber(id)):\(CGDisplayModelNumber(id)):\(CGDisplaySerialNumber(id))"
-        return (id, key)
+        return (id, Self.displayKey(for: id))
+    }
+
+    /// Stable cache key for a display, matching externalDisplayCandidate's.
+    nonisolated static func displayKey(for id: CGDirectDisplayID) -> String {
+        "\(CGDisplayVendorNumber(id)):\(CGDisplayModelNumber(id)):\(CGDisplaySerialNumber(id))"
     }
 }
 

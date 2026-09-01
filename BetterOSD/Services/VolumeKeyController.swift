@@ -14,7 +14,11 @@ enum MediaKeyHandlingResult: Equatable {
 }
 
 protocol VolumeKeyHandling: AnyObject {
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult
+    func handle(
+        _ key: MediaKeyMonitor.MediaKey,
+        fineStep: Bool,
+        invertFeedback: Bool
+    ) -> MediaKeyHandlingResult
 }
 
 final class VolumeKeyController: VolumeKeyHandling {
@@ -33,7 +37,11 @@ final class VolumeKeyController: VolumeKeyHandling {
         self.feedbackPlayer = feedbackPlayer
     }
 
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
+    func handle(
+        _ key: MediaKeyMonitor.MediaKey,
+        fineStep: Bool,
+        invertFeedback: Bool = false
+    ) -> MediaKeyHandlingResult {
         guard key.isIntercepted else { return .passThrough }
         guard let deviceID = audioController.defaultOutputDeviceID(),
               let volumeControl = audioController.volumeControl(for: deviceID)
@@ -79,7 +87,8 @@ final class VolumeKeyController: VolumeKeyHandling {
                 currentSnapshot: currentSnapshot,
                 currentVolume: currentVolume,
                 isMuted: isMuted,
-                fineStep: fineStep
+                fineStep: fineStep,
+                invertFeedback: invertFeedback
             )
         case .brightnessUp, .brightnessDown,
              .keyboardBrightnessUp, .keyboardBrightnessDown:
@@ -152,7 +161,8 @@ final class VolumeKeyController: VolumeKeyHandling {
         currentSnapshot: AudioDeviceVolumeSnapshot?,
         currentVolume: Float,
         isMuted: Bool,
-        fineStep: Bool
+        fineStep: Bool,
+        invertFeedback: Bool
     ) -> MediaKeyHandlingResult {
         let stepsPerUnit = fineStep ? HUDCalculation.fineSteps : HUDCalculation.standardSteps
         let currentStep = Int(round(currentVolume * Float(stepsPerUnit)))
@@ -194,7 +204,7 @@ final class VolumeKeyController: VolumeKeyHandling {
         // The system pop only plays when the volume actually changed and
         // stayed audible — silent at zero, on mute, and at the ceiling.
         if volumeSuccess, targetVolume > 0, targetVolume != currentVolume {
-            feedbackPlayer.playVolumeFeedback()
+            feedbackPlayer.playVolumeFeedback(invert: invertFeedback)
         }
 
         return handled ? .consumed(didChange: didChange) : .passThrough
