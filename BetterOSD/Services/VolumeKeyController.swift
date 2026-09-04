@@ -78,7 +78,8 @@ final class VolumeKeyController: VolumeKeyHandling {
                 isMuted: isMuted,
                 fineStep: fineStep
             )
-        case .brightnessUp, .brightnessDown:
+        case .brightnessUp, .brightnessDown,
+             .keyboardBrightnessUp, .keyboardBrightnessDown:
             return .passThrough
         }
 
@@ -226,7 +227,8 @@ extension MediaKeyMonitor.MediaKey {
         switch self {
         case .soundUp, .soundDown, .mute:
             true
-        case .brightnessUp, .brightnessDown:
+        case .brightnessUp, .brightnessDown,
+             .keyboardBrightnessUp, .keyboardBrightnessDown:  // keyboard backlight cases added
             false
         }
     }
