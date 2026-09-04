@@ -14,7 +14,14 @@ protocol DisplayServicesBrightnessControlling: AnyObject {
     func setBrightness(_ brightness: Float) -> Bool
 }
 
-final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControlling {
+/// Per-display brightness control — the ⇧+brightness path that adjusts only
+/// the display under the pointer instead of the all-displays sweep.
+protocol TargetedBrightnessControlling: AnyObject {
+    func currentBrightness(ofDisplay displayID: CGDirectDisplayID) -> Float?
+    func setBrightness(_ brightness: Float, ofDisplay displayID: CGDirectDisplayID) -> Bool
+}
+
+final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControlling, TargetedBrightnessControlling {
     private typealias CanChangeBrightness = @convention(c) (CGDirectDisplayID) -> Bool
     private typealias GetBrightness = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
     private typealias SetBrightness = @convention(c) (CGDirectDisplayID, Float) -> Int32
@@ -39,6 +46,44 @@ final class DisplayServicesBrightnessClient: DisplayServicesBrightnessControllin
 
     func setBrightness(_ brightness: Float) -> Bool {
         guard let displayID = firstControllableDisplayID(),
+              let setBrightnessFn
+        else {
+            return false
+        }
+
+        return setBrightnessFn(displayID, max(0, min(1, brightness))) == 0
+    }
+
+    /// True when DisplayServices can drive at least one display — i.e. the
+    /// built-in panel is active (lid open) or macOS natively supports an
+    /// external one. When false, callers should fall back to DDC.
+    func hasControllableDisplay() -> Bool {
+        firstControllableDisplayID() != nil
+    }
+
+    func canControl(displayID: CGDirectDisplayID) -> Bool {
+        guard resolveSymbolsIfNeeded(),
+              let canChangeBrightness
+        else {
+            return false
+        }
+        return canChangeBrightness(displayID)
+    }
+
+    func currentBrightness(ofDisplay displayID: CGDirectDisplayID) -> Float? {
+        guard canControl(displayID: displayID),
+              let getBrightnessFn
+        else {
+            return nil
+        }
+
+        var value: Float = 0
+        guard getBrightnessFn(displayID, &value) == 0 else { return nil }
+        return max(0, min(1, value))
+    }
+
+    func setBrightness(_ brightness: Float, ofDisplay displayID: CGDirectDisplayID) -> Bool {
+        guard canControl(displayID: displayID),
               let setBrightnessFn
         else {
             return false

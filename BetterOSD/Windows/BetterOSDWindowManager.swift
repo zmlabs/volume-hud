@@ -68,8 +68,14 @@ final class BetterOSDWindowManager {
         if hudWindow == nil {
             hudWindow = BetterOSDWindow()
         }
+
+        // Follow the display the update targeted (⇧+brightness); repositioning
+        // on every update also moves the overlay when the target switches
+        // while the HUD is already on screen.
+        let targetDisplay = HUDDisplayStateStore.shared.displayIDForHUD
+        hudWindow?.updatePosition(on: targetDisplay)
         if hudWindow?.isVisible == false {
-            hudWindow?.showWithAnimation()
+            hudWindow?.showWithAnimation(on: targetDisplay)
         }
     }
 

@@ -34,4 +34,14 @@ enum AppStorageKeys {
     static let bottomOffset = "bottomOffset"
     static let glassVariant = "glassVariant"
     static let accessibilityPrompted = "accessibilityPrompted"
+
+    // External display brightness via DDC/CI ("ddcBrightness.<vendor>:<model>:<serial>")
+    static let ddcBrightnessCachePrefix = "ddcBrightness."
+
+    // Keyboard backlight OSD
+    static let keyboardBacklightEnabled = "keyboardBacklightEnabled"
+    static let keyboardBrightnessUpCode = "keyboardBrightnessUpCode"
+    static let keyboardBrightnessDownCode = "keyboardBrightnessDownCode"
+    // "f5f6" | "cmdF1F2" | "" (not configured)
+    static let keyboardBrightnessKeyMode = "keyboardBrightnessKeyMode"
 }

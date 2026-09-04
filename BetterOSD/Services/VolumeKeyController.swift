@@ -14,23 +14,34 @@ enum MediaKeyHandlingResult: Equatable {
 }
 
 protocol VolumeKeyHandling: AnyObject {
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult
+    func handle(
+        _ key: MediaKeyMonitor.MediaKey,
+        fineStep: Bool,
+        invertFeedback: Bool
+    ) -> MediaKeyHandlingResult
 }
 
 final class VolumeKeyController: VolumeKeyHandling {
     private let audioController: SystemAudioControlling
     private let hudStore: HUDDisplayStateStore
+    private let feedbackPlayer: VolumeFeedbackPlaying
     private var lastNonZeroVolumeByDevice: [AudioDeviceID: AudioDeviceVolumeSnapshot] = [:]
 
     init(
         audioController: SystemAudioControlling = SystemAudioController.shared,
-        hudStore: HUDDisplayStateStore = .shared
+        hudStore: HUDDisplayStateStore = .shared,
+        feedbackPlayer: VolumeFeedbackPlaying = VolumeFeedbackSoundPlayer.shared
     ) {
         self.audioController = audioController
         self.hudStore = hudStore
+        self.feedbackPlayer = feedbackPlayer
     }
 
-    func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
+    func handle(
+        _ key: MediaKeyMonitor.MediaKey,
+        fineStep: Bool,
+        invertFeedback: Bool = false
+    ) -> MediaKeyHandlingResult {
         guard key.isIntercepted else { return .passThrough }
         guard let deviceID = audioController.defaultOutputDeviceID(),
               let volumeControl = audioController.volumeControl(for: deviceID)
@@ -76,9 +87,11 @@ final class VolumeKeyController: VolumeKeyHandling {
                 currentSnapshot: currentSnapshot,
                 currentVolume: currentVolume,
                 isMuted: isMuted,
-                fineStep: fineStep
+                fineStep: fineStep,
+                invertFeedback: invertFeedback
             )
-        case .brightnessUp, .brightnessDown:
+        case .brightnessUp, .brightnessDown,
+             .keyboardBrightnessUp, .keyboardBrightnessDown:
             return .passThrough
         }
 
@@ -148,7 +161,8 @@ final class VolumeKeyController: VolumeKeyHandling {
         currentSnapshot: AudioDeviceVolumeSnapshot?,
         currentVolume: Float,
         isMuted: Bool,
-        fineStep: Bool
+        fineStep: Bool,
+        invertFeedback: Bool
     ) -> MediaKeyHandlingResult {
         let stepsPerUnit = fineStep ? HUDCalculation.fineSteps : HUDCalculation.standardSteps
         let currentStep = Int(round(currentVolume * Float(stepsPerUnit)))
@@ -185,6 +199,12 @@ final class VolumeKeyController: VolumeKeyHandling {
             let muteSuccess = audioController.setMute(true, deviceID: deviceID, address: muteAddress)
             handled = handled || muteSuccess
             didChange = didChange || (muteSuccess && !isMuted)
+        }
+
+        // The system pop only plays when the volume actually changed and
+        // stayed audible — silent at zero, on mute, and at the ceiling.
+        if volumeSuccess, targetVolume > 0, targetVolume != currentVolume {
+            feedbackPlayer.playVolumeFeedback(invert: invertFeedback)
         }
 
         return handled ? .consumed(didChange: didChange) : .passThrough
@@ -226,7 +246,8 @@ extension MediaKeyMonitor.MediaKey {
         switch self {
         case .soundUp, .soundDown, .mute:
             true
-        case .brightnessUp, .brightnessDown:
+        case .brightnessUp, .brightnessDown,
+             .keyboardBrightnessUp, .keyboardBrightnessDown:  // keyboard backlight cases added
             false
         }
     }

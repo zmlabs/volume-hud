@@ -100,16 +100,36 @@ struct BrightnessKeyControllerTests {
         #expect(controller.currentState == BrightnessState(brightness: 1.0))
         #expect(client.setBrightnessCallCount == 0)
     }
+
+    @Test
+    func targetedHandleStepsOnlyTheGivenDisplay() {
+        let client = FakeDisplayServicesBrightnessClient()
+        client.targetedBrightnessValues = [0.5, 0.5625]
+        client.setBrightnessResult = true
+        let controller = BrightnessKeyController(displayController: client)
+
+        let result = controller.handle(.brightnessUp, fineStep: false, targetDisplayID: 99)
+
+        #expect(result == .consumed(didChange: true))
+        #expect(controller.currentState == BrightnessState(brightness: 0.5625))
+        #expect(client.targetedSetArguments == [0.5625])
+        #expect(client.currentBrightnessCallCount == 0)
+        #expect(client.setBrightnessCallCount == 0)
+    }
 }
 
 @MainActor
-private final class FakeDisplayServicesBrightnessClient: DisplayServicesBrightnessControlling {
+private final class FakeDisplayServicesBrightnessClient: DisplayServicesBrightnessControlling, TargetedBrightnessControlling {
     var currentBrightnessCallCount = 0
     var setBrightnessCallCount = 0
     var currentBrightnessResult: Float?
     var currentBrightnessValues: [Float] = []
     var setBrightnessResult = false
     var setBrightnessArguments: [Float] = []
+
+    // Targeted (⇧+brightness) recording.
+    var targetedBrightnessValues: [Float] = []
+    var targetedSetArguments: [Float] = []
 
     func currentBrightness() -> Float? {
         currentBrightnessCallCount += 1
@@ -124,6 +144,19 @@ private final class FakeDisplayServicesBrightnessClient: DisplayServicesBrightne
     func setBrightness(_ brightness: Float) -> Bool {
         setBrightnessCallCount += 1
         setBrightnessArguments.append(brightness)
+        return setBrightnessResult
+    }
+
+    func currentBrightness(ofDisplay displayID: CGDirectDisplayID) -> Float? {
+        if targetedBrightnessValues.isEmpty == false {
+            return targetedBrightnessValues.removeFirst()
+        }
+
+        return currentBrightnessResult
+    }
+
+    func setBrightness(_ brightness: Float, ofDisplay displayID: CGDirectDisplayID) -> Bool {
+        targetedSetArguments.append(brightness)
         return setBrightnessResult
     }
 }

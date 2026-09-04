@@ -79,6 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate, SPUStand
         }
 
         promptAccessibilityIfNeeded()
+        restoreKeyRemappingIfNeeded()
     }
 
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
@@ -125,6 +126,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate, SPUStand
         menu.addItem(quitItem)
 
         statusItem?.menu = menu
+    }
+
+    // Re-applies hidutil F5/F6 remapping on every launch when the keyboard backlight
+    // OSD is enabled with the standard assignment. Replaces the need for a separate
+    // LaunchAgent — BetterOSD itself is already a login item.
+    private func restoreKeyRemappingIfNeeded() {
+        let enabled = UserDefaults.standard.object(forKey: AppStorageKeys.keyboardBacklightEnabled) as? Bool ?? false
+        let mode = UserDefaults.standard.string(forKey: AppStorageKeys.keyboardBrightnessKeyMode) ?? ""
+        guard enabled, mode == "f5f6" else { return }
+        HIDUtilRemapper.applyF5F6Remapping()
     }
 
     private func promptAccessibilityIfNeeded() {

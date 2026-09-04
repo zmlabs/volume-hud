@@ -6,6 +6,7 @@
 //
 
 import Combine
+import CoreGraphics
 import Foundation
 
 final class HUDDisplayStateStore {
@@ -13,6 +14,10 @@ final class HUDDisplayStateStore {
 
     let publisher = PassthroughSubject<HUDDisplayState, Never>()
     private(set) var current: HUDDisplayState
+
+    /// Display the HUD should appear on — the ⇧+brightness target the update
+    /// was triggered for. Nil means the main screen (volume keys, sweeps, …).
+    private(set) var displayIDForHUD: CGDirectDisplayID?
 
     init(initialState: HUDDisplayState = .defaultVolumePlaceholder) {
         current = initialState
@@ -22,8 +27,9 @@ final class HUDDisplayStateStore {
         current = state
     }
 
-    func update(_ state: HUDDisplayState) {
+    func update(_ state: HUDDisplayState, onDisplay displayID: CGDirectDisplayID? = nil) {
         current = state
+        displayIDForHUD = displayID
         publisher.send(state)
     }
 }
