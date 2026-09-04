@@ -20,14 +20,17 @@ protocol VolumeKeyHandling: AnyObject {
 final class VolumeKeyController: VolumeKeyHandling {
     private let audioController: SystemAudioControlling
     private let hudStore: HUDDisplayStateStore
+    private let feedbackPlayer: VolumeFeedbackPlaying
     private var lastNonZeroVolumeByDevice: [AudioDeviceID: AudioDeviceVolumeSnapshot] = [:]
 
     init(
         audioController: SystemAudioControlling = SystemAudioController.shared,
-        hudStore: HUDDisplayStateStore = .shared
+        hudStore: HUDDisplayStateStore = .shared,
+        feedbackPlayer: VolumeFeedbackPlaying = VolumeFeedbackSoundPlayer.shared
     ) {
         self.audioController = audioController
         self.hudStore = hudStore
+        self.feedbackPlayer = feedbackPlayer
     }
 
     func handle(_ key: MediaKeyMonitor.MediaKey, fineStep: Bool) -> MediaKeyHandlingResult {
@@ -186,6 +189,12 @@ final class VolumeKeyController: VolumeKeyHandling {
             let muteSuccess = audioController.setMute(true, deviceID: deviceID, address: muteAddress)
             handled = handled || muteSuccess
             didChange = didChange || (muteSuccess && !isMuted)
+        }
+
+        // The system pop only plays when the volume actually changed and
+        // stayed audible — silent at zero, on mute, and at the ceiling.
+        if volumeSuccess, targetVolume > 0, targetVolume != currentVolume {
+            feedbackPlayer.playVolumeFeedback()
         }
 
         return handled ? .consumed(didChange: didChange) : .passThrough
